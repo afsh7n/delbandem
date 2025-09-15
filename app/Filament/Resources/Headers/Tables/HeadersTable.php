@@ -18,16 +18,14 @@ class HeadersTable
             ->columns([
                 ImageColumn::make('images')
                     ->label('تصاویر')
-                    ->circular()
+                    ->square()
                     ->stacked()
-                    ->limit(3)
+                    ->limit(4)
                     ->limitedRemainingText()
+                    ->size(80)
                     ->getStateUsing(function ($record) {
                         return is_array($record->images) ? $record->images : [];
                     }),
-                TextColumn::make('images')
-                    ->label('تعداد تصاویر')
-                    ->formatStateUsing(fn ($state) => is_array($state) ? count($state) . ' تصویر' : '0 تصویر'),
                 TextColumn::make('created_at')
                     ->label('تاریخ ایجاد')
                     ->dateTime('Y/m/d H:i')
