@@ -15,7 +15,9 @@ class HeaderForm
                     ->label('تصاویر')
                     ->multiple()
                     ->image()
+                    ->disk('public')
                     ->directory('headers')
+                    ->visibility('public')
                     ->required()
                     ->helperText('تصاویر هدر سایت را آپلود کنید'),
             ]);

@@ -20,11 +20,13 @@ class StoriesTable
             ->columns([
                 ImageColumn::make('image_file_name')
                     ->label('تصویر')
-                    ->square(),
+                    ->square()
+                    ->size(60),
                 TextColumn::make('title')
                     ->label('عنوان')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->limit(30),
                 TextColumn::make('author')
                     ->label('نویسنده')
                     ->searchable()
@@ -32,6 +34,23 @@ class StoriesTable
                 TextColumn::make('category.title')
                     ->label('دسته‌بندی')
                     ->sortable(),
+                TextColumn::make('voice_file_name')
+                    ->label('فایل صوتی')
+                    ->formatStateUsing(function ($state, $record) {
+                        if (!$state) {
+                            return '❌ بدون صدا';
+                        }
+                        
+                        $url = url('storage/' . $state);
+                        return new \Illuminate\Support\HtmlString(
+                            '<audio controls style="width: 200px; height: 30px;">
+                                <source src="' . $url . '" type="audio/mpeg">
+                                <source src="' . $url . '" type="audio/wav">
+                                مرورگر شما از پخش صدا پشتیبانی نمی‌کند.
+                            </audio>'
+                        );
+                    })
+                    ->html(),
                 TextColumn::make('rate')
                     ->label('امتیاز')
                     ->badge()

@@ -30,7 +30,9 @@ class UserForm
                 FileUpload::make('photo')
                     ->label('تصویر پروفایل')
                     ->image()
+                    ->disk('public')
                     ->directory('users')
+                    ->visibility('public')
                     ->default('default-user.jpg'),
                 Select::make('role')
                     ->label('نقش')

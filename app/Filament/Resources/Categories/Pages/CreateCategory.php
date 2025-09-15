@@ -13,4 +13,9 @@ class CreateCategory extends CreateRecord
     {
         return parent::getCreateAnotherFormAction()->hidden();
     }
+    
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

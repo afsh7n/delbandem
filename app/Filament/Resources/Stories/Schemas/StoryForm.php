@@ -37,13 +37,18 @@ class StoryForm
                 FileUpload::make('image_file_name')
                     ->label('تصویر')
                     ->image()
+                    ->disk('public')
                     ->directory('stories/images')
+                    ->visibility('public')
                     ->helperText('تصویر کاور داستان را آپلود کنید'),
                 FileUpload::make('voice_file_name')
                     ->label('فایل صوتی')
-                    ->acceptedFileTypes(['audio/mpeg', 'audio/mp3', 'audio/wav'])
+                    ->acceptedFileTypes(['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg'])
+                    ->disk('public')
                     ->directory('stories/voices')
-                    ->helperText('فایل صوتی داستان را آپلود کنید'),
+                    ->visibility('public')
+                    ->maxSize(50 * 1024) // 50MB
+                    ->helperText('فایل صوتی داستان را آپلود کنید (حداکثر 50MB)'),
                 TextInput::make('rate')
                     ->label('امتیاز')
                     ->numeric()
