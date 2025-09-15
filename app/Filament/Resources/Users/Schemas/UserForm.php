@@ -15,24 +15,32 @@ class UserForm
         return $schema
             ->components([
                 TextInput::make('email')
+                    ->label('ایمیل')
                     ->email()
-                    ->maxLength(30),
+                    ->maxLength(30)
+                    ->placeholder('example@domain.com'),
                 TextInput::make('phone_number')
+                    ->label('شماره تلفن')
                     ->required()
-                    ->unique(ignoreRecord: true),
+                    ->unique(ignoreRecord: true)
+                    ->placeholder('09123456789'),
                 TextInput::make('google_id')
-                    ->label('Google ID'),
+                    ->label('شناسه گوگل')
+                    ->placeholder('Google ID'),
                 FileUpload::make('photo')
+                    ->label('تصویر پروفایل')
                     ->image()
                     ->directory('users')
                     ->default('default-user.jpg'),
                 Select::make('role')
+                    ->label('نقش')
                     ->options([
-                        'user' => 'User',
-                        'admin' => 'Admin',
+                        'user' => 'کاربر',
+                        'admin' => 'مدیر',
                     ])
                     ->default('user'),
                 Toggle::make('active')
+                    ->label('فعال')
                     ->default(true),
             ]);
     }

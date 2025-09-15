@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Headers\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -15,17 +16,21 @@ class HeadersTable
         return $table
             ->columns([
                 TextColumn::make('images')
-                    ->label('Images Count')
-                    ->formatStateUsing(fn ($state) => is_array($state) ? count($state) . ' images' : '0 images'),
+                    ->label('تعداد تصاویر')
+                    ->formatStateUsing(fn ($state) => is_array($state) ? count($state) . ' تصویر' : '0 تصویر'),
                 TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('تاریخ ایجاد')
+                    ->dateTime('Y/m/d H:i')
                     ->sortable(),
             ])
             ->filters([
                 //
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->label('ویرایش'),
+                DeleteAction::make()
+                    ->label('حذف'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

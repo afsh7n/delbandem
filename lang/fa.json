@@ -36,5 +36,18 @@
     "Message": "پیام",
     "Images": "تصاویر",
     "Admin": "مدیر",
-    "User": "کاربر"
+    "New": "جدید",
+    "Create :resource": "ایجاد :resource",
+    "Edit :resource": "ویرایش :resource",
+    "View :resource": "نمایش :resource",
+    "Create another": "ایجاد یکی دیگر",
+    "Are you sure?": "آیا مطمئن هستید؟",
+    "This action cannot be undone.": "این عمل قابل بازگشت نیست.",
+    "Yes, delete it": "بله، حذف کن",
+    "No, cancel": "نه، لغو کن",
+    "Search...": "جستجو...",
+    "No results found.": "نتیجه‌ای یافت نشد.",
+    "per page": "در هر صفحه",
+    "of": "از",
+    "results": "نتیجه"
 }

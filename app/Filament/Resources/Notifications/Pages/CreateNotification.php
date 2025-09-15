@@ -8,4 +8,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateNotification extends CreateRecord
 {
     protected static string $resource = NotificationResource::class;
+    
+    protected function getCreateAnotherFormAction(): \Filament\Actions\Action
+    {
+        return parent::getCreateAnotherFormAction()->hidden();
+    }
 }

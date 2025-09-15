@@ -16,34 +16,47 @@ class StoryForm
         return $schema
             ->components([
                 TextInput::make('title')
+                    ->label('عنوان')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->placeholder('عنوان داستان را وارد کنید'),
                 TextInput::make('author')
+                    ->label('نویسنده')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->placeholder('نام نویسنده را وارد کنید'),
                 Textarea::make('description')
-                    ->rows(3),
+                    ->label('توضیحات')
+                    ->rows(3)
+                    ->placeholder('توضیحات داستان را وارد کنید'),
                 Select::make('category_id')
-                    ->label('Category')
+                    ->label('دسته‌بندی')
                     ->options(Category::all()->pluck('title', 'id'))
-                    ->required(),
+                    ->required()
+                    ->placeholder('دسته‌بندی را انتخاب کنید'),
                 FileUpload::make('image_file_name')
-                    ->label('Image')
+                    ->label('تصویر')
                     ->image()
-                    ->directory('stories/images'),
+                    ->directory('stories/images')
+                    ->helperText('تصویر کاور داستان را آپلود کنید'),
                 FileUpload::make('voice_file_name')
-                    ->label('Voice File')
+                    ->label('فایل صوتی')
                     ->acceptedFileTypes(['audio/mpeg', 'audio/mp3', 'audio/wav'])
-                    ->directory('stories/voices'),
+                    ->directory('stories/voices')
+                    ->helperText('فایل صوتی داستان را آپلود کنید'),
                 TextInput::make('rate')
+                    ->label('امتیاز')
                     ->numeric()
                     ->step(0.1)
                     ->minValue(0)
                     ->maxValue(5)
-                    ->default(0),
+                    ->default(0)
+                    ->helperText('امتیاز بین 0 تا 5'),
                 TextInput::make('total_rates')
+                    ->label('تعداد امتیازها')
                     ->numeric()
-                    ->default(1),
+                    ->default(1)
+                    ->helperText('تعداد کل امتیازهای ثبت شده'),
             ]);
     }
 }

@@ -12,10 +12,12 @@ class HeaderForm
         return $schema
             ->components([
                 FileUpload::make('images')
+                    ->label('تصاویر')
                     ->multiple()
                     ->image()
                     ->directory('headers')
-                    ->required(),
+                    ->required()
+                    ->helperText('تصاویر هدر سایت را آپلود کنید'),
             ]);
     }
 }

@@ -13,10 +13,14 @@ class CategoryForm
         return $schema
             ->components([
                 TextInput::make('title')
+                    ->label('عنوان')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->placeholder('عنوان دسته‌بندی را وارد کنید'),
                 Textarea::make('description')
-                    ->rows(3),
+                    ->label('توضیحات')
+                    ->rows(3)
+                    ->placeholder('توضیحات دسته‌بندی را وارد کنید'),
             ]);
     }
 }
