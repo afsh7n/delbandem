@@ -16,12 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
         
-        // Set Persian locale for all requests
         $middleware->web(append: [
-            function ($request, $next) {
-                app()->setLocale('fa');
-                return $next($request);
-            }
+            \App\Http\Middleware\SetLocale::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
