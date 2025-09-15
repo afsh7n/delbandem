@@ -10,6 +10,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Authentication Controller
+ * 
+ * Handles user authentication via SMS verification
+ */
 class AuthController extends Controller
 {
     private SmsService $smsService;
@@ -19,6 +24,14 @@ class AuthController extends Controller
         $this->smsService = $smsService;
     }
 
+    /**
+     * Send verification code to phone number
+     * 
+     * Initiates the login process by sending a 4-digit verification code via SMS
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function preLogin(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -62,6 +75,14 @@ class AuthController extends Controller
         return response()->json(['success' => true, 'message' => 'Verification code sent'], 201);
     }
 
+    /**
+     * Resend verification code
+     * 
+     * Resends a new 4-digit verification code to the user's phone number
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function resendCode(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -98,6 +119,14 @@ class AuthController extends Controller
         return response()->json(['success' => true, 'message' => 'Verification code resent'], 201);
     }
 
+    /**
+     * Verify code and login user
+     * 
+     * Verifies the SMS code and returns user data with authentication token
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function login(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [

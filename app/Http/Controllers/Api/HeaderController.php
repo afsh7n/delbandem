@@ -6,8 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\Header;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * Header Controller
+ * 
+ * Handles header images and banner content
+ */
 class HeaderController extends Controller
 {
+    /**
+     * Get header images
+     * 
+     * Returns header/banner images with full URLs
+     * 
+     * @return JsonResponse
+     */
     public function index(): JsonResponse
     {
         $header = Header::first();

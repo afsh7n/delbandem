@@ -9,14 +9,34 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
+/**
+ * User Controller
+ * 
+ * Handles authenticated user operations including profile, favorites, and story ratings
+ */
 class UserController extends Controller
 {
+    /**
+     * Get current user profile
+     * 
+     * Returns the authenticated user's profile information
+     * 
+     * @return JsonResponse
+     */
     public function me(): JsonResponse
     {
         $user = Auth::user();
         return response()->json(['success' => true, 'user' => $user]);
     }
 
+    /**
+     * Add story to favorites
+     * 
+     * Adds a story to the authenticated user's favorites list
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function addToFavorites(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -40,6 +60,14 @@ class UserController extends Controller
         return response()->json(['success' => true, 'message' => 'Story added to favorites']);
     }
 
+    /**
+     * Rate a story
+     * 
+     * Allows the authenticated user to rate a story (0-5 stars)
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function rateStory(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -93,6 +121,13 @@ class UserController extends Controller
         return response()->json(['success' => true, 'message' => 'Story rated successfully']);
     }
 
+    /**
+     * Get user's favorite stories
+     * 
+     * Returns all stories favorited by the authenticated user
+     * 
+     * @return JsonResponse
+     */
     public function getFavorites(): JsonResponse
     {
         $user = Auth::user();
