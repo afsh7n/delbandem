@@ -19,6 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Set default locale to Persian
+        app()->setLocale('fa');
+        
+        // Set timezone to Tehran
+        config(['app.timezone' => 'Asia/Tehran']);
     }
 }

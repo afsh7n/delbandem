@@ -1,61 +1,164 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel Story Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+پروژه مدیریت داستان‌ها با پنل ادمین فلیمنت و API کامل
 
-## About Laravel
+## ویژگی‌ها
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **پنل ادمین فلیمنت**: مدیریت کاربران، دسته‌بندی‌ها، داستان‌ها، اعلان‌ها و هدرها
+- **API کامل**: شامل احراز هویت، مدیریت داستان‌ها، علاقه‌مندی‌ها و امتیازدهی
+- **احراز هویت با SMS**: سیستم ورود با کد تأیید پیامکی
+- **آپلود فایل**: پشتیبانی از آپلود تصاویر و فایل‌های صوتی
+- **سیستم امتیازدهی**: امکان امتیازدهی به داستان‌ها توسط کاربران
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## نصب و راه‌اندازی
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 1. کلون کردن پروژه
+```bash
+git clone <repository-url>
+cd delbandem
+```
 
-## Learning Laravel
+### 2. نصب وابستگی‌ها
+```bash
+composer install
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 3. تنظیمات محیطی
+فایل `.env` را ایجاد کرده و تنظیمات زیر را اضافه کنید:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+```env
+# Database
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=delbandem
+DB_USERNAME=root
+DB_PASSWORD=
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+# SMS Configuration
+SMS_API_KEY=your_sms_api_key
+SMS_SECURITY_CODE=your_sms_security_code
+SMS_TOKEN_URL=your_token_url
+SMS_URL=your_sms_url
+```
 
-## Laravel Sponsors
+### 4. ایجاد کلید برنامه
+```bash
+php artisan key:generate
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 5. اجرای Migration ها
+```bash
+php artisan migrate
+```
 
-### Premium Partners
+### 6. ایجاد Symbolic Link برای Storage
+```bash
+php artisan storage:link
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 7. ایجاد کاربر ادمین
+```bash
+php artisan make:filament-user
+```
 
-## Contributing
+## API Endpoints
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### احراز هویت (Auth)
+- `POST /api/auth/pre-login` - ارسال کد تأیید
+- `POST /api/auth/pre-login/resend-code` - ارسال مجدد کد تأیید
+- `POST /api/auth/login` - ورود با کد تأیید
 
-## Code of Conduct
+### داستان‌ها (Stories) - عمومی
+- `GET /api/stories` - لیست تمام داستان‌ها
+- `GET /api/stories/{id}` - نمایش یک داستان
+- `GET /api/stories/category/{categoryId}` - داستان‌های یک دسته‌بندی
+- `GET /api/stories/categories` - لیست دسته‌بندی‌ها
+- `GET /api/stories/new-stories` - جدیدترین داستان‌ها
+- `GET /api/stories/best-stories` - بهترین داستان‌ها
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### کاربران (Users) - نیازمند احراز هویت
+- `GET /api/users/me` - اطلاعات کاربر جاری
+- `PUT /api/users/add-to-favorites` - اضافه کردن به علاقه‌مندی‌ها
+- `PUT /api/users/rate-story` - امتیازدهی به داستان
+- `GET /api/users/favorites` - لیست علاقه‌مندی‌های کاربر
 
-## Security Vulnerabilities
+### اعلان‌ها (Notifications) - عمومی
+- `GET /api/notifications` - لیست اعلان‌ها
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### هدر (Header) - عمومی
+- `GET /api/header` - تصاویر هدر
 
-## License
+## پنل ادمین
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+پنل ادمین در آدرس `/admin` در دسترس است.
+
+### منابع موجود در پنل ادمین:
+- **Users**: مدیریت کاربران
+- **Categories**: مدیریت دسته‌بندی‌ها
+- **Stories**: مدیریت داستان‌ها (شامل آپلود تصویر و فایل صوتی)
+- **Notifications**: مدیریت اعلان‌ها
+- **Headers**: مدیریت تصاویر هدر
+
+## ساختار دیتابیس
+
+### جداول اصلی:
+- `users` - اطلاعات کاربران
+- `categories` - دسته‌بندی‌ها
+- `stories` - داستان‌ها
+- `notifications` - اعلان‌ها
+- `headers` - تصاویر هدر
+- `user_favorites` - جدول pivot برای علاقه‌مندی‌ها
+
+## تنظیمات SMS
+
+برای فعال‌سازی سرویس SMS، باید کلیدهای مربوطه را در فایل `.env` تنظیم کنید:
+
+```env
+SMS_API_KEY=your_api_key_here
+SMS_SECURITY_CODE=your_security_code_here
+SMS_TOKEN_URL=https://api.sms.ir/v1/Token
+SMS_URL=https://api.sms.ir/v1/send/verify
+```
+
+## فایل‌های آپلود شده
+
+فایل‌ها در مسیرهای زیر ذخیره می‌شوند:
+- تصاویر کاربران: `storage/app/public/users/`
+- تصاویر داستان‌ها: `storage/app/public/stories/images/`
+- فایل‌های صوتی داستان‌ها: `storage/app/public/stories/voices/`
+- تصاویر هدر: `storage/app/public/headers/`
+
+## کامپایل کردن Assets
+
+```bash
+npm run build
+```
+
+## اجرای پروژه
+
+```bash
+php artisan serve
+```
+
+پروژه در آدرس `http://localhost:8000` در دسترس خواهد بود.
+
+## ویژگی‌های پنل ادمین
+
+- **داشبورد سفارشی**: نمایش آمار کلی سیستم در 4 باکس بزرگ
+- **تم بنفش ملایم**: طراحی زیبا با رنگ‌بندی بنفش
+- **منوی فارسی**: تمام منوها و عناوین به زبان فارسی
+- **آیکون‌های مناسب**: آیکون مخصوص برای هر بخش
+- **پشتیبانی کامل از RTL**: طراحی راست‌چین برای زبان فارسی
+- **فونت وزیر**: استفاده از فونت زیبای وزیر از گوگل فونت
+- **تنظیمات فارسی**: timezone تهران و locale فارسی
+
+### آمار داشبورد شامل:
+- تعداد دسته‌بندی‌ها
+- تعداد داستان‌ها  
+- تعداد اعلان‌ها
+- تعداد هدرها
+
+## لایسنس
+
+این پروژه تحت لایسنس MIT منتشر شده است.
