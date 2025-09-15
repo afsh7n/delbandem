@@ -13,13 +13,16 @@ class StoryController extends Controller
     public function index(): JsonResponse
     {
         $stories = Story::with('category')->get();
-        return response()->json($stories);
+        if ($stories->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'No stories found']);
+        }
+        return response()->json(['success' => true, 'stories' => $stories]);
     }
 
     public function show(string $id): JsonResponse
     {
         $story = Story::with('category')->findOrFail($id);
-        return response()->json($story);
+        return response()->json(['success' => true, 'story' => $story]);
     }
 
     public function getByCategory(string $categoryId): JsonResponse
@@ -27,14 +30,17 @@ class StoryController extends Controller
         $stories = Story::with('category')
             ->where('category_id', $categoryId)
             ->get();
-        
-        return response()->json($stories);
+
+        if ($stories->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'No stories found for this category']);
+        }
+        return response()->json(['success' => true, 'stories' => $stories]);
     }
 
     public function getCategories(): JsonResponse
     {
         $categories = Category::all();
-        return response()->json($categories);
+        return response()->json(['success' => true, 'categories' => $categories]);
     }
 
     public function getNewStories(): JsonResponse
@@ -43,8 +49,11 @@ class StoryController extends Controller
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
-        
-        return response()->json($stories);
+
+        if ($stories->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'No new stories found']);
+        }
+        return response()->json(['success' => true, 'stories' => $stories]);
     }
 
     public function getBestStories(): JsonResponse
@@ -53,7 +62,10 @@ class StoryController extends Controller
             ->orderBy('rate', 'desc')
             ->limit(10)
             ->get();
-        
-        return response()->json($stories);
+
+        if ($stories->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'No best stories found']);
+        }
+        return response()->json(['success' => true, 'stories' => $stories]);
     }
 }

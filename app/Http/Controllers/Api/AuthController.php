@@ -22,11 +22,11 @@ class AuthController extends Controller
     public function preLogin(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'phoneNumber' => 'required|string|regex:/^09\d{9}$/',
+            'phoneNumber' => 'required|string|regex:/^09\\d{9}$/',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
         $phoneNumber = $request->phoneNumber;
@@ -56,27 +56,27 @@ class AuthController extends Controller
         try {
             $this->smsService->sendSms($phoneNumber, (string)$code);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to send SMS'], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to send SMS'], 500);
         }
 
-        return response()->json(['message' => 'Verification code sent'], 201);
+        return response()->json(['success' => true, 'message' => 'Verification code sent'], 201);
     }
 
     public function resendCode(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'phoneNumber' => 'required|string|regex:/^09\d{9}$/',
+            'phoneNumber' => 'required|string|regex:/^09\\d{9}$/',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
         $phoneNumber = $request->phoneNumber;
         $user = User::where('phone_number', $phoneNumber)->first();
 
         if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
         }
 
         $code = rand(1000, 9999);
@@ -92,35 +92,35 @@ class AuthController extends Controller
         try {
             $this->smsService->sendSms($phoneNumber, (string)$code);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to send SMS'], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to send SMS'], 500);
         }
 
-        return response()->json(['message' => 'Verification code resent'], 201);
+        return response()->json(['success' => true, 'message' => 'Verification code resent'], 201);
     }
 
     public function login(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'phoneNumber' => 'required|string|regex:/^09\d{9}$/',
+            'phoneNumber' => 'required|string|regex:/^09\\d{9}$/',
             'code' => 'required|integer|digits:4',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
         $user = User::where('phone_number', $request->phoneNumber)->first();
 
         if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
         }
 
         $verificationCode = $user->verification_code;
 
-        if (!$verificationCode || 
-            $verificationCode['code'] != $request->code || 
+        if (!$verificationCode ||
+            $verificationCode['code'] != $request->code ||
             now()->gt($verificationCode['expires'])) {
-            return response()->json(['message' => 'Invalid or expired verification code'], 401);
+            return response()->json(['success' => false, 'message' => 'Invalid or expired verification code'], 401);
         }
 
         // Clear verification code
@@ -130,6 +130,7 @@ class AuthController extends Controller
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
+            'success' => true,
             'user' => $user,
             'token' => $token,
         ], 201);

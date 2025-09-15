@@ -11,15 +11,15 @@ class HeaderController extends Controller
     public function index(): JsonResponse
     {
         $header = Header::first();
-        
+
         if (!$header) {
-            return response()->json(['images' => []]);
+            return response()->json(['success' => true, 'images' => []]);
         }
 
         $imagesWithUrls = collect($header->images)->map(function ($image) {
             return url('storage/' . $image);
         })->toArray();
 
-        return response()->json(['images' => $imagesWithUrls]);
+        return response()->json(['success' => true, 'images' => $imagesWithUrls]);
     }
 }

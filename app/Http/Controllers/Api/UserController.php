@@ -14,7 +14,7 @@ class UserController extends Controller
     public function me(): JsonResponse
     {
         $user = Auth::user();
-        return response()->json($user);
+        return response()->json(['success' => true, 'user' => $user]);
     }
 
     public function addToFavorites(Request $request): JsonResponse
@@ -24,7 +24,7 @@ class UserController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
         $user = Auth::user();
@@ -32,12 +32,12 @@ class UserController extends Controller
 
         // Check if already favorited
         if ($user->favoriteStories()->where('story_id', $story->id)->exists()) {
-            return response()->json(['message' => 'Story already in favorites'], 400);
+            return response()->json(['success' => false, 'message' => 'Story already in favorites'], 400);
         }
 
         $user->favoriteStories()->attach($story->id);
 
-        return response()->json(['message' => 'Story added to favorites']);
+        return response()->json(['success' => true, 'message' => 'Story added to favorites']);
     }
 
     public function rateStory(Request $request): JsonResponse
@@ -48,7 +48,7 @@ class UserController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
         $user = Auth::user();
@@ -56,7 +56,7 @@ class UserController extends Controller
 
         // Get current rated stories
         $ratedStories = $user->rated_stories ?? [];
-        
+
         // Check if user has already rated this story
         $existingRateIndex = collect($ratedStories)->search(function ($item) use ($request) {
             return $item['storyId'] == $request->storyId;
@@ -66,7 +66,7 @@ class UserController extends Controller
             // Update existing rate
             $oldRate = $ratedStories[$existingRateIndex]['rate'];
             $ratedStories[$existingRateIndex]['rate'] = $request->rate;
-            
+
             // Update story's average rate
             $totalRates = $story->total_rates;
             $currentTotal = $story->rate * $totalRates;
@@ -78,7 +78,7 @@ class UserController extends Controller
                 'storyId' => $request->storyId,
                 'rate' => $request->rate,
             ];
-            
+
             // Update story's average rate
             $totalRates = $story->total_rates + 1;
             $currentTotal = $story->rate * $story->total_rates;
@@ -90,14 +90,14 @@ class UserController extends Controller
         $user->update(['rated_stories' => $ratedStories]);
         $story->save();
 
-        return response()->json(['message' => 'Story rated successfully']);
+        return response()->json(['success' => true, 'message' => 'Story rated successfully']);
     }
 
     public function getFavorites(): JsonResponse
     {
         $user = Auth::user();
         $favorites = $user->favoriteStories()->with('category')->get();
-        
-        return response()->json($favorites);
+
+        return response()->json(['success' => true, 'favorites' => $favorites]);
     }
 }

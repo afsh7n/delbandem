@@ -11,6 +11,6 @@ class NotificationController extends Controller
     public function index(): JsonResponse
     {
         $notifications = Notification::orderBy('created_at', 'desc')->get();
-        return response()->json($notifications);
+        return response()->json(['success' => true, 'notifications' => $notifications]);
     }
 }
