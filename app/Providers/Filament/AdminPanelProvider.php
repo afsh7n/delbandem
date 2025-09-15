@@ -56,7 +56,6 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 // Widgets are now handled by the custom Dashboard page
             ])
-            ->maxContentWidth('full')
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
