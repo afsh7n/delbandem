@@ -8,29 +8,32 @@ use Illuminate\Http\JsonResponse;
 
 /**
  * Header Controller
- * 
+ *
  * Handles header images and banner content
  */
 class HeaderController extends Controller
 {
     /**
      * Get header images
-     * 
+     *
      * Returns header/banner images with full URLs
-     * 
+     *
      * @return JsonResponse
      */
     public function index(): JsonResponse
     {
-        $header = Header::first();
+        $headers = Header::query()->get();
 
-        if (!$header) {
+        if (!count($headers)) {
             return response()->json(['success' => true, 'images' => []]);
         }
 
-        $imagesWithUrls = collect($header->images)->map(function ($image) {
-            return url('storage/' . $image);
-        })->toArray();
+        $imagesWithUrls = [];
+        foreach ($headers as $header) {
+            $imagesWithUrls = collect($header->images)->map(function ($image) {
+                return url('storage/' . $image);
+            })->toArray();
+        }
 
         return response()->json(['success' => true, 'images' => $imagesWithUrls]);
     }
