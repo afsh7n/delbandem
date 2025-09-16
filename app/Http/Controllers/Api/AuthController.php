@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Authentication Controller
- * 
+ *
  * Handles user authentication via SMS verification
  */
 class AuthController extends Controller
@@ -26,9 +26,9 @@ class AuthController extends Controller
 
     /**
      * Send verification code to phone number
-     * 
+     *
      * Initiates the login process by sending a 4-digit verification code via SMS
-     * 
+     *
      * @param Request $request
      * @return JsonResponse
      */
@@ -67,7 +67,7 @@ class AuthController extends Controller
         }
 
         try {
-            $this->smsService->sendSms($phoneNumber, (string)$code);
+            $this->smsService->sendVerificationCode($phoneNumber, (string)$code);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Failed to send SMS'], 500);
         }
@@ -77,9 +77,9 @@ class AuthController extends Controller
 
     /**
      * Resend verification code
-     * 
+     *
      * Resends a new 4-digit verification code to the user's phone number
-     * 
+     *
      * @param Request $request
      * @return JsonResponse
      */
@@ -111,7 +111,7 @@ class AuthController extends Controller
         ]);
 
         try {
-            $this->smsService->sendSms($phoneNumber, (string)$code);
+            $this->smsService->sendVerificationCode($phoneNumber, (string)$code);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Failed to send SMS'], 500);
         }
@@ -121,9 +121,9 @@ class AuthController extends Controller
 
     /**
      * Verify code and login user
-     * 
+     *
      * Verifies the SMS code and returns user data with authentication token
-     * 
+     *
      * @param Request $request
      * @return JsonResponse
      */
