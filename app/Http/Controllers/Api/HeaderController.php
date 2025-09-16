@@ -30,9 +30,9 @@ class HeaderController extends Controller
 
         $imagesWithUrls = [];
         foreach ($headers as $header) {
-            $imagesWithUrls = collect($header->images)->map(function ($image) {
+            $imagesWithUrls = [...$imagesWithUrls, ...collect($header->images)->map(function ($image) {
                 return url('storage/' . $image);
-            })->toArray();
+            })->toArray()];
         }
 
         return response()->json(['success' => true, 'images' => $imagesWithUrls]);
