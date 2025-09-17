@@ -61,6 +61,37 @@ class UserController extends Controller
     }
 
     /**
+     * Remove story from favorites
+     * 
+     * Removes a story from the authenticated user's favorites list
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function removeFromFavorites(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'storyId' => 'required|exists:stories,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $user = Auth::user();
+        $story = Story::findOrFail($request->storyId);
+
+        // Check if story is in favorites
+        if (!$user->favoriteStories()->where('story_id', $story->id)->exists()) {
+            return response()->json(['success' => false, 'message' => 'Story is not in favorites'], 400);
+        }
+
+        $user->favoriteStories()->detach($story->id);
+
+        return response()->json(['success' => true, 'message' => 'Story removed from favorites']);
+    }
+
+    /**
      * Rate a story
      * 
      * Allows the authenticated user to rate a story (0-5 stars)

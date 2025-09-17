@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('users')->group(function () {
         Route::get('/me', [UserController::class, 'me']);
         Route::put('/add-to-favorites', [UserController::class, 'addToFavorites']);
+        Route::delete('/remove-from-favorites', [UserController::class, 'removeFromFavorites']);
         Route::put('/rate-story', [UserController::class, 'rateStory']);
         Route::get('/favorites', [UserController::class, 'getFavorites']);
     });
