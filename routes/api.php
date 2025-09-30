@@ -35,6 +35,15 @@ Route::prefix('stories')->group(function () {
     Route::get('/{id}', [StoryController::class, 'show']);
 });
 
+Route::get('/ping', function () {
+    return response()->json([
+        'success' => true,
+        'message' => 'Service is up and running',
+        'timestamp' => now()->toISOString(),
+        'status' => 'healthy'
+    ]);
+});
+
 Route::get('/notifications', [NotificationController::class, 'index']);
 Route::get('/header', [HeaderController::class, 'index']);
 
