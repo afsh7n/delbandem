@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\HeaderController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\StoryController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
@@ -46,6 +47,12 @@ Route::get('/ping', function () {
 
 Route::get('/notifications', [NotificationController::class, 'index']);
 Route::get('/header', [HeaderController::class, 'index']);
+
+Route::prefix('settings')->group(function () {
+    Route::get('/', [SettingController::class, 'index']);
+    Route::get('/{key}', [SettingController::class, 'show']);
+    Route::post('/by-keys', [SettingController::class, 'getByKeys']);
+});
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
