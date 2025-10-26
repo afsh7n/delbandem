@@ -13,53 +13,53 @@ class SettingForm
     {
         return $schema->components([
             TextInput::make('key')
-                ->label('Key')
+                ->label('کلید')
                 ->required()
                 ->unique(ignoreRecord: true)
                 ->disabled(fn ($record) => $record !== null) // Disable editing key for existing records
-                ->helperText('Unique identifier for the setting. Cannot be changed after creation.')
+                ->helperText('شناسه یکتا برای تنظیم. پس از ایجاد قابل تغییر نیست.')
                 ->maxLength(255),
 
             Select::make('type')
-                ->label('Type')
+                ->label('نوع')
                 ->required()
                 ->options([
-                    'string' => 'String',
-                    'number' => 'Number',
-                    'boolean' => 'Boolean',
+                    'string' => 'متن',
+                    'number' => 'عدد',
+                    'boolean' => 'بولین',
                     'json' => 'JSON',
-                    'text' => 'Text',
+                    'text' => 'متن طولانی',
                 ])
                 ->default('string')
                 ->live()
-                ->helperText('Data type for the setting value'),
+                ->helperText('نوع داده برای مقدار تنظیم'),
 
             TextInput::make('value')
-                ->label('Value')
+                ->label('مقدار')
                 ->required()
                 ->visible(fn ($get) => in_array($get('type'), ['string', 'number']))
-                ->helperText('Setting value'),
+                ->helperText('مقدار تنظیم'),
 
             Select::make('value')
-                ->label('Value')
+                ->label('مقدار')
                 ->required()
                 ->options([
-                    '1' => 'True',
-                    '0' => 'False',
+                    '1' => 'درست',
+                    '0' => 'غلط',
                 ])
                 ->visible(fn ($get) => $get('type') === 'boolean')
-                ->helperText('Boolean value for the setting'),
+                ->helperText('مقدار بولین برای تنظیم'),
 
             Textarea::make('value')
-                ->label('Value')
+                ->label('مقدار')
                 ->required()
                 ->rows(4)
                 ->visible(fn ($get) => in_array($get('type'), ['text', 'json']))
-                ->helperText(fn ($get) => $get('type') === 'json' ? 'Valid JSON format required' : 'Text value for the setting'),
+                ->helperText(fn ($get) => $get('type') === 'json' ? 'فرمت JSON معتبر الزامی است' : 'مقدار متنی برای تنظیم'),
 
             TextInput::make('description')
-                ->label('Description')
-                ->helperText('Optional description for the setting')
+                ->label('توضیحات')
+                ->helperText('توضیحات اختیاری برای تنظیم')
                 ->maxLength(255),
         ]);
     }

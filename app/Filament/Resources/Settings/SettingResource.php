@@ -19,11 +19,11 @@ class SettingResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cog';
 
-    protected static ?string $navigationLabel = 'Settings';
+    protected static ?string $navigationLabel = 'تنظیمات';
 
-    protected static ?string $modelLabel = 'Setting';
+    protected static ?string $modelLabel = 'تنظیم';
 
-    protected static ?string $pluralModelLabel = 'Settings';
+    protected static ?string $pluralModelLabel = 'تنظیمات';
 
     protected static ?int $navigationSort = 10;
 

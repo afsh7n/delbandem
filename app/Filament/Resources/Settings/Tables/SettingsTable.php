@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\Settings\Tables;
 
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -16,14 +16,14 @@ class SettingsTable
         return $table
             ->columns([
                 TextColumn::make('key')
-                    ->label('Key')
+                    ->label('کلید')
                     ->searchable()
                     ->sortable()
                     ->copyable()
                     ->weight('bold'),
 
                 TextColumn::make('value')
-                    ->label('Value')
+                    ->label('مقدار')
                     ->limit(50)
                     ->tooltip(function (TextColumn $column): ?string {
                         $state = $column->getState();
@@ -34,7 +34,7 @@ class SettingsTable
                     }),
 
                 TextColumn::make('type')
-                    ->label('Type')
+                    ->label('نوع')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'string' => 'gray',
@@ -46,7 +46,7 @@ class SettingsTable
                     }),
 
                 TextColumn::make('description')
-                    ->label('Description')
+                    ->label('توضیحات')
                     ->limit(30)
                     ->tooltip(function (TextColumn $column): ?string {
                         $state = $column->getState();
@@ -57,13 +57,13 @@ class SettingsTable
                     }),
 
                 TextColumn::make('created_at')
-                    ->label('Created')
+                    ->label('تاریخ ایجاد')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('updated_at')
-                    ->label('Updated')
+                    ->label('تاریخ بروزرسانی')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
