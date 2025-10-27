@@ -58,8 +58,8 @@ class PushNotificationsTable
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
-            ->recordActions([])
-            ->toolbarActions([]);
+            ->actions([])
+            ->bulkActions([]);
     }
 }
 

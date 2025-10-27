@@ -55,19 +55,5 @@ class PushNotificationResource extends Resource
         ];
     }
 
-    public static function canCreate(): bool
-    {
-        return true; // اضافه کردن مجاز است
-    }
-
-    public static function canEdit(): bool
-    {
-        return false; // ویرایش مجاز نیست
-    }
-
-    public static function canDelete(): bool
-    {
-        return false; // حذف مجاز نیست
-    }
 }
 
