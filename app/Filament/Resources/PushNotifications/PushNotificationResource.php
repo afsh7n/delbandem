@@ -7,13 +7,11 @@ use App\Filament\Resources\PushNotifications\Pages\ListPushNotifications;
 use App\Filament\Resources\PushNotifications\Schemas\PushNotificationForm;
 use App\Filament\Resources\PushNotifications\Tables\PushNotificationsTable;
 use App\Models\PushNotification;
-use App\Services\OneSignalService;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Log;
 
 class PushNotificationResource extends Resource
 {
@@ -27,7 +25,10 @@ class PushNotificationResource extends Resource
 
     protected static ?int $navigationSort = 10;
 
-    protected static ?string $navigationGroup = 'مدیریت محتوا';
+    public static function getNavigationGroup(): ?string
+    {
+        return 'مدیریت محتوا';
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -54,9 +55,14 @@ class PushNotificationResource extends Resource
         ];
     }
 
+    public static function canCreate(): bool
+    {
+        return true; // اضافه کردن مجاز است
+    }
+
     public static function canEdit(): bool
     {
-        return false; // فقط اضافه کردن مجاز است
+        return false; // ویرایش مجاز نیست
     }
 
     public static function canDelete(): bool
