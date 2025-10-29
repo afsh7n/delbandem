@@ -25,19 +25,23 @@ class OneSignalService
         try {
             $payload = [
                 'app_id' => $this->appId,
+                'included_segments' => ['Subscribed Users'], // تغییر از 'All' به 'Subscribed Users'
                 'contents' => ['en' => $message],
                 'headings' => ['en' => $title],
-                'included_segments' => ['All'],
-                'data' => $data,
             ];
 
-            // اضافه کردن تصویر در صورت وجود
+            // فقط اگر $data غیرخالی بود، اضافه کن
+            if (!empty($data)) {
+                $payload['data'] = $data; // آرایه PHP → JSON object
+            }
+
+            // اضافه کردن تصویر
             if ($image) {
                 $payload['big_picture'] = $image;
                 $payload['content_available'] = true;
             }
 
-            // اضافه کردن لینک در صورت وجود
+            // اضافه کردن لینک
             if ($url) {
                 $payload['url'] = $url;
             }
@@ -50,13 +54,17 @@ class OneSignalService
                 'Authorization' => 'Basic ' . $this->restApiKey,
             ])->post('https://onesignal.com/api/v1/notifications', $payload);
 
-            Log::info('OneSignal Response: ', ['response' => $response->json()]);
+            $result = $response->json();
 
-            return $response->json();
+            Log::info('OneSignal Response: ', ['response' => $result]);
+
+            return $result;
         } catch (Exception $e) {
-            Log::error('OneSignal Error: ' . $e->getMessage());
+            Log::error('OneSignal Error: ' . $e->getMessage(), [
+                'payload' => $payload ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
             throw $e;
         }
     }
 }
-
