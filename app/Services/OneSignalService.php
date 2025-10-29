@@ -10,7 +10,7 @@ class OneSignalService
 {
     private $appId;
     private $restApiKey;
-    
+
     public function __construct()
     {
         $this->appId = '092bd07e-12f9-4bfe-b533-61384f1dd972';
@@ -42,13 +42,16 @@ class OneSignalService
                 $payload['url'] = $url;
             }
 
-            $response = Http::withHeaders([
+            $response = Http::withOptions([
+                'proxy' => 'http://82.115.18.216:3128',
+                'timeout' => 30,
+            ])->withHeaders([
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Basic ' . $this->restApiKey,
             ])->post('https://onesignal.com/api/v1/notifications', $payload);
 
             Log::info('OneSignal Response: ', ['response' => $response->json()]);
-            
+
             return $response->json();
         } catch (Exception $e) {
             Log::error('OneSignal Error: ' . $e->getMessage());
