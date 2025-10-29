@@ -19,29 +19,38 @@ class OneSignalService
 
     /**
      * ارسال نوتیفیکیشن به تمام کاربران
+     *
+     * @param string $title
+     * @param string $message
+     * @param array $data
+     * @param string|null $image
+     * @param string|null $url
+     * @return array
      */
     public function sendToAll($title, $message, $data = [], $image = null, $url = null)
     {
         try {
             $payload = [
                 'app_id' => $this->appId,
-                'included_segments' => ['Subscribed Users'], // تغییر از 'All' به 'Subscribed Users'
+                'included_segments' => ['Total Subscriptions'], // درست
                 'contents' => ['en' => $message],
                 'headings' => ['en' => $title],
+                'isAndroid' => true,   // برای اندروید
+                'isIos' => false,      // اگر iOS نداری
             ];
 
-            // فقط اگر $data غیرخالی بود، اضافه کن
+            // فقط اگر $data غیرخالی بود
             if (!empty($data)) {
-                $payload['data'] = $data; // آرایه PHP → JSON object
+                $payload['data'] = $data;
             }
 
-            // اضافه کردن تصویر
+            // تصویر
             if ($image) {
                 $payload['big_picture'] = $image;
                 $payload['content_available'] = true;
             }
 
-            // اضافه کردن لینک
+            // لینک
             if ($url) {
                 $payload['url'] = $url;
             }
