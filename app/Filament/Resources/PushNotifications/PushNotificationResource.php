@@ -18,17 +18,12 @@ class PushNotificationResource extends Resource
     protected static ?string $model = PushNotification::class;
 
     protected static ?string $modelLabel = 'نوتیفیکیشن پوش';
-    
+
     protected static ?string $pluralModelLabel = 'نوتیفیکیشن‌های پوش';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-bell';
 
     protected static ?int $navigationSort = 10;
-
-    public static function getNavigationGroup(): ?string
-    {
-        return 'مدیریت محتوا';
-    }
 
     public static function form(Schema $schema): Schema
     {
