@@ -13,6 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class SubscriptionResource extends Resource
 {
@@ -26,7 +27,7 @@ class SubscriptionResource extends Resource
 
     protected static ?string $pluralModelLabel = 'اشتراک‌ها';
 
-    protected static ?string $navigationGroup = 'اشتراک و پرداخت';
+    protected static string|UnitEnum|null $navigationGroup = 'اشتراک و پرداخت';
 
     protected static ?int $navigationSort = 2;
 
