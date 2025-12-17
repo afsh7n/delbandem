@@ -3,14 +3,17 @@
 namespace App\Filament\Resources\Subscriptions\Tables;
 
 use App\Models\Subscription;
-use Filament\Tables;
-use Filament\Tables\Table;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 
 class SubscriptionsTable
 {
-    public static function table(Table $table): Table
+    public static function configure(Table $table): Table
     {
         return $table
             ->columns([
@@ -29,15 +32,17 @@ class SubscriptionsTable
                     ->sortable()
                     ->searchable(),
 
-                BadgeColumn::make('status')
+                TextColumn::make('status')
                     ->label('وضعیت')
+                    ->badge()
                     ->formatStateUsing(fn ($state) => Subscription::getStatuses()[$state] ?? $state)
-                    ->colors([
-                        'warning' => Subscription::STATUS_PENDING,
-                        'success' => Subscription::STATUS_ACTIVE,
-                        'danger' => Subscription::STATUS_EXPIRED,
-                        'gray' => Subscription::STATUS_CANCELLED,
-                    ]),
+                    ->color(fn (string $state): string => match ($state) {
+                        Subscription::STATUS_PENDING => 'warning',
+                        Subscription::STATUS_ACTIVE => 'success',
+                        Subscription::STATUS_EXPIRED => 'danger',
+                        Subscription::STATUS_CANCELLED => 'gray',
+                        default => 'gray',
+                    }),
 
                 TextColumn::make('paid_price')
                     ->label('مبلغ پرداختی')
@@ -66,25 +71,27 @@ class SubscriptionsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label('وضعیت')
                     ->options(Subscription::getStatuses()),
 
-                Tables\Filters\SelectFilter::make('plan_id')
+                SelectFilter::make('plan_id')
                     ->label('پلن')
                     ->relationship('plan', 'name'),
 
-                Tables\Filters\Filter::make('active')
+                SelectFilter::make('active')
                     ->label('فقط اشتراک‌های فعال')
                     ->query(fn ($query) => $query->active()),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                ViewAction::make()
+                    ->label('مشاهده'),
+                EditAction::make()
+                    ->label('ویرایش'),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

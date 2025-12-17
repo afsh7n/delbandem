@@ -20,19 +20,24 @@ class SubscriptionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-ticket';
 
+    protected static ?string $navigationLabel = 'اشتراک‌ها';
+
     protected static ?string $modelLabel = 'اشتراک';
 
     protected static ?string $pluralModelLabel = 'اشتراک‌ها';
 
-    public static function form(Form $form): Form
+    protected static ?string $navigationGroup = 'اشتراک و پرداخت';
+
+    protected static ?int $navigationSort = 2;
+
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema(SubscriptionForm::schema());
+        return SubscriptionForm::configure($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return SubscriptionsTable::table($table);
+        return SubscriptionsTable::configure($table);
     }
 
     public static function getRelations(): array

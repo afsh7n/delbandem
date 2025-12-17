@@ -2,15 +2,18 @@
 
 namespace App\Filament\Resources\Plans\Tables;
 
-use Filament\Tables;
-use Filament\Tables\Table;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 
 class PlansTable
 {
-    public static function table(Table $table): Table
+    public static function configure(Table $table): Table
     {
         return $table
             ->columns([
@@ -34,13 +37,8 @@ class PlansTable
                     ->sortable()
                     ->formatStateUsing(fn ($state) => number_format($state) . ' تومان'),
 
-                IconColumn::make('is_active')
-                    ->label('وضعیت')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-check-circle')
-                    ->falseIcon('heroicon-o-x-circle')
-                    ->trueColor('success')
-                    ->falseColor('danger'),
+                ToggleColumn::make('is_active')
+                    ->label('وضعیت'),
 
                 TextColumn::make('subscriptions_count')
                     ->label('تعداد اشتراک')
@@ -60,19 +58,22 @@ class PlansTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('فعال')
-                    ->placeholder('همه')
-                    ->trueLabel('فعال')
-                    ->falseLabel('غیرفعال'),
+                SelectFilter::make('is_active')
+                    ->label('وضعیت')
+                    ->options([
+                        1 => 'فعال',
+                        0 => 'غیرفعال',
+                    ]),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+            ->recordActions([
+                EditAction::make()
+                    ->label('ویرایش'),
+                DeleteAction::make()
+                    ->label('حذف'),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

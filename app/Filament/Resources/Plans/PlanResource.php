@@ -20,19 +20,24 @@ class PlanResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
 
+    protected static ?string $navigationLabel = 'پلن‌ها';
+
     protected static ?string $modelLabel = 'پلن';
 
     protected static ?string $pluralModelLabel = 'پلن‌ها';
 
-    public static function form(Form $form): Form
+    protected static ?string $navigationGroup = 'اشتراک و پرداخت';
+
+    protected static ?int $navigationSort = 1;
+
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema(PlanForm::schema());
+        return PlanForm::configure($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return PlansTable::table($table);
+        return PlansTable::configure($table);
     }
 
     public static function getRelations(): array
