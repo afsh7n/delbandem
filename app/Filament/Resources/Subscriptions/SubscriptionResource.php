@@ -24,8 +24,6 @@ class SubscriptionResource extends Resource
 
     protected static ?string $pluralModelLabel = 'اشتراک‌ها';
 
-    protected static ?string $navigationGroup = 'اشتراک و پرداخت';
-
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form

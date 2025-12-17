@@ -24,8 +24,6 @@ class PlanResource extends Resource
 
     protected static ?string $pluralModelLabel = 'پلن‌ها';
 
-    protected static ?string $navigationGroup = 'اشتراک و پرداخت';
-
     protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
