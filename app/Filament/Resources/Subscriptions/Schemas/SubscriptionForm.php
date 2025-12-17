@@ -19,14 +19,22 @@ class SubscriptionForm
                     ->label('کاربر')
                     ->required()
                     ->searchable()
-                    ->options(User::pluck('phone_number', 'id'))
+                    ->options(
+                        User::whereNotNull('phone_number')
+                            ->pluck('phone_number', 'id')
+                            ->filter()
+                    )
                     ->disabled(fn ($context) => $context === 'edit'),
 
                 Select::make('plan_id')
                     ->label('پلن')
                     ->required()
                     ->searchable()
-                    ->options(Plan::pluck('name', 'id'))
+                    ->options(
+                        Plan::whereNotNull('name')
+                            ->pluck('name', 'id')
+                            ->filter()
+                    )
                     ->disabled(fn ($context) => $context === 'edit'),
 
                 Select::make('status')
