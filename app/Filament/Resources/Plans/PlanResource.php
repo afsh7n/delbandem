@@ -16,15 +16,11 @@ class PlanResource extends Resource
 {
     protected static ?string $model = Plan::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-credit-card';
-
-    protected static ?string $navigationLabel = 'پلن‌ها';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
 
     protected static ?string $modelLabel = 'پلن';
 
     protected static ?string $pluralModelLabel = 'پلن‌ها';
-
-    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {

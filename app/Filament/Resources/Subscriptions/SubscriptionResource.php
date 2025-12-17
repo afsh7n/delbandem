@@ -16,15 +16,11 @@ class SubscriptionResource extends Resource
 {
     protected static ?string $model = Subscription::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-ticket';
-
-    protected static ?string $navigationLabel = 'اشتراک‌ها';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-ticket';
 
     protected static ?string $modelLabel = 'اشتراک';
 
     protected static ?string $pluralModelLabel = 'اشتراک‌ها';
-
-    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
