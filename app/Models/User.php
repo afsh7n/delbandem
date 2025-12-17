@@ -58,4 +58,51 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Story::class, 'user_favorites', 'user_id', 'story_id');
     }
+
+    /**
+     * Get the subscriptions for the user.
+     */
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Get the active subscription for the user.
+     */
+    public function activeSubscription()
+    {
+        return $this->hasOne(Subscription::class)
+            ->where('status', Subscription::STATUS_ACTIVE)
+            ->where('end_date', '>', now())
+            ->latest();
+    }
+
+    /**
+     * Check if user has an active subscription
+     */
+    public function hasActiveSubscription(): bool
+    {
+        return $this->activeSubscription()->exists();
+    }
+
+    /**
+     * Get subscription info for API response
+     */
+    public function getSubscriptionInfo(): ?array
+    {
+        $subscription = $this->activeSubscription()->with('plan')->first();
+        
+        if (!$subscription) {
+            return null;
+        }
+
+        return [
+            'has_subscription' => true,
+            'plan_name' => $subscription->plan->name,
+            'start_date' => $subscription->start_date?->toIso8601String(),
+            'end_date' => $subscription->end_date?->toIso8601String(),
+            'days_remaining' => $subscription->end_date ? max(0, now()->diffInDays($subscription->end_date, false)) : 0,
+        ];
+    }
 }

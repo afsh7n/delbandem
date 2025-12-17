@@ -158,10 +158,14 @@ class AuthController extends Controller
         // Create token
         $token = $user->createToken('api-token')->plainTextToken;
 
+        // Get subscription info
+        $subscriptionInfo = $user->getSubscriptionInfo();
+
         return response()->json([
             'success' => true,
             'user' => $user,
             'token' => $token,
+            'subscription' => $subscriptionInfo,
         ], 201);
     }
 }

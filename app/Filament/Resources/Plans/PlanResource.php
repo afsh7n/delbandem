@@ -1,0 +1,58 @@
+<?php
+
+namespace App\Filament\Resources\Plans;
+
+use App\Filament\Resources\Plans\Pages\CreatePlan;
+use App\Filament\Resources\Plans\Pages\EditPlan;
+use App\Filament\Resources\Plans\Pages\ListPlans;
+use App\Filament\Resources\Plans\Schemas\PlanForm;
+use App\Filament\Resources\Plans\Tables\PlansTable;
+use App\Models\Plan;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables\Table;
+
+class PlanResource extends Resource
+{
+    protected static ?string $model = Plan::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-credit-card';
+
+    protected static ?string $navigationLabel = 'پلن‌ها';
+
+    protected static ?string $modelLabel = 'پلن';
+
+    protected static ?string $pluralModelLabel = 'پلن‌ها';
+
+    protected static ?string $navigationGroup = 'اشتراک و پرداخت';
+
+    protected static ?int $navigationSort = 1;
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema(PlanForm::schema());
+    }
+
+    public static function table(Table $table): Table
+    {
+        return PlansTable::table($table);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListPlans::route('/'),
+            'create' => CreatePlan::route('/create'),
+            'edit' => EditPlan::route('/{record}/edit'),
+        ];
+    }
+}
+

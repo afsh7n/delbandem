@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\HeaderController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\StoryController;
 use App\Http\Controllers\Api\UserController;
@@ -54,6 +55,12 @@ Route::prefix('settings')->group(function () {
     Route::post('/by-keys', [SettingController::class, 'getByKeys']);
 });
 
+// Plans (Public)
+Route::prefix('plans')->group(function () {
+    Route::get('/', [PaymentController::class, 'getPlans']);
+    Route::get('/{id}', [PaymentController::class, 'getPlan']);
+});
+
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('users')->group(function () {
@@ -62,5 +69,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/remove-from-favorites', [UserController::class, 'removeFromFavorites']);
         Route::put('/rate-story', [UserController::class, 'rateStory']);
         Route::get('/favorites', [UserController::class, 'getFavorites']);
+    });
+
+    // Payment & Subscriptions
+    Route::prefix('payment')->group(function () {
+        Route::post('/request', [PaymentController::class, 'requestPayment']);
+    });
+
+    Route::prefix('subscriptions')->group(function () {
+        Route::get('/', [PaymentController::class, 'getSubscriptions']);
+        Route::get('/active', [PaymentController::class, 'getActiveSubscription']);
     });
 });

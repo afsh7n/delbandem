@@ -19,14 +19,20 @@ class UserController extends Controller
     /**
      * Get current user profile
      * 
-     * Returns the authenticated user's profile information
+     * Returns the authenticated user's profile information including subscription details
      * 
      * @return JsonResponse
      */
     public function me(): JsonResponse
     {
         $user = Auth::user();
-        return response()->json(['success' => true, 'user' => $user]);
+        $subscriptionInfo = $user->getSubscriptionInfo();
+
+        return response()->json([
+            'success' => true,
+            'user' => $user,
+            'subscription' => $subscriptionInfo
+        ]);
     }
 
     /**
