@@ -80,4 +80,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [PaymentController::class, 'getSubscriptions']);
         Route::get('/active', [PaymentController::class, 'getActiveSubscription']);
     });
+
+    // Story listening endpoints
+    Route::prefix('stories')->group(function () {
+        Route::post('/{id}/open', [StoryController::class, 'openStory']);
+        Route::put('/{id}/progress', [StoryController::class, 'updateProgress']);
+        Route::get('/{id}/status', [StoryController::class, 'getStoryStatus']);
+    });
 });

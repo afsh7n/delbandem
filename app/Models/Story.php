@@ -43,6 +43,14 @@ class Story extends Model
         return $this->belongsToMany(User::class, 'user_favorites', 'story_id', 'user_id');
     }
 
+    /**
+     * Get the listens for this story.
+     */
+    public function listens()
+    {
+        return $this->hasMany(UserStoryListen::class);
+    }
+
     public function getVoiceFileUrlAttribute()
     {
         return $this->voice_file_name ? url('storage/' . $this->voice_file_name) : null;

@@ -61,6 +61,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the story listens for the user.
+     */
+    public function storyListens()
+    {
+        return $this->hasMany(UserStoryListen::class);
+    }
+
+    /**
      * Get the subscriptions for the user.
      */
     public function subscriptions()
