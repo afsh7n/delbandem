@@ -2,27 +2,24 @@
 
 namespace App\Services;
 
-use Zarinpal\Zarinpal as ZarinpalClient;
 use App\Models\Plan;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Log;
+use Shetabit\Multipay\Exceptions\InvalidPaymentException;
+use Shetabit\Multipay\Invoice;
+use Shetabit\Payment\Facade\Payment;
 
 class ZarinpalService
 {
-    private ?ZarinpalClient $zarinpal = null;
     private string $merchantId;
     private string $callbackUrl;
     private bool $sandbox;
 
     public function __construct()
     {
-        $this->merchantId = config('services.zarinpal.merchant_id');
-        $this->callbackUrl = config('services.zarinpal.callback_url');
+        $this->merchantId = config('payment.drivers.zarinpal.merchant_id');
+        $this->callbackUrl = config('payment.drivers.zarinpal.callback_url');
         $this->sandbox = config('services.zarinpal.sandbox', false);
-
-        if (class_exists(ZarinpalClient::class)) {
-            $this->zarinpal = new ZarinpalClient($this->merchantId, $this->sandbox);
-        }
     }
 
     /**
@@ -31,13 +28,6 @@ class ZarinpalService
     public function requestPayment(Plan $plan, int $userId): array
     {
         try {
-            if (!$this->zarinpal) {
-                return [
-                    'success' => false,
-                    'message' => 'پکیج زرین‌پال نصب نشده است. لطفا composer install را اجرا کنید.',
-                ];
-            }
-
             // Create subscription record
             $subscription = Subscription::create([
                 'user_id' => $userId,
@@ -49,44 +39,48 @@ class ZarinpalService
             // Convert Toman to Rial (multiply by 10)
             $amountInRial = $plan->price * 10;
 
-            // Request payment from ZarinPal
-            $result = $this->zarinpal->request(
-                $amountInRial,
-                $plan->description ?? "خرید پلن {$plan->name}",
-                '',
-                '',
-                [
+            // Create invoice
+            $invoice = (new Invoice)->amount($amountInRial)
+                ->detail([
+                    'description' => $plan->description ?? "خرید پلن {$plan->name}",
                     'subscription_id' => $subscription->id,
-                ]
-            );
-
-            if ($result['Status'] == 100) {
-                // Save authority code
-                $subscription->update([
-                    'authority' => $result['Authority']
+                    'plan_id' => $plan->id,
+                    'user_id' => $userId,
                 ]);
 
-                // Return payment URL
-                return [
-                    'success' => true,
-                    'payment_url' => $this->zarinpal->getRedirectUrl($result['Authority']),
-                    'authority' => $result['Authority'],
-                    'subscription_id' => $subscription->id,
-                ];
-            }
+            // Determine driver (sandbox or production)
+            $driver = $this->sandbox ? 'zarinpal-sandbox' : 'zarinpal';
 
-            // Payment request failed
-            $subscription->update(['status' => Subscription::STATUS_CANCELLED]);
+            // Purchase invoice
+            $payment = Payment::via($driver)->purchase($invoice, function ($driver, $transactionId) use ($subscription) {
+                // Save authority code
+                $subscription->update([
+                    'authority' => $transactionId
+                ]);
+            });
+
+            // Get payment URL
+            $paymentUrl = $payment->pay()->getAction();
 
             return [
-                'success' => false,
-                'message' => 'خطا در ایجاد درخواست پرداخت',
-                'error' => $result,
+                'success' => true,
+                'message' => 'لینک پرداخت با موفقیت ایجاد شد',
+                'data' => [
+                    'payment_url' => $paymentUrl,
+                    'authority' => $subscription->authority,
+                ],
             ];
 
         } catch (\Exception $e) {
-            Log::error('ZarinPal Payment Request Error: ' . $e->getMessage());
-            
+            Log::error('ZarinPal Payment Request Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            // Update subscription status to cancelled on error
+            if (isset($subscription)) {
+                $subscription->update(['status' => Subscription::STATUS_CANCELLED]);
+            }
+
             return [
                 'success' => false,
                 'message' => 'خطا در اتصال به درگاه پرداخت',
@@ -98,16 +92,9 @@ class ZarinpalService
     /**
      * Verify payment callback
      */
-    public function verifyPayment(string $authority, int $status): array
+    public function verifyPayment(string $authority, string $status): array
     {
         try {
-            if (!$this->zarinpal) {
-                return [
-                    'success' => false,
-                    'message' => 'پکیج زرین‌پال نصب نشده است. لطفا composer install را اجرا کنید.',
-                ];
-            }
-
             // Find subscription by authority
             $subscription = Subscription::where('authority', $authority)->first();
 
@@ -129,43 +116,55 @@ class ZarinpalService
                 ];
             }
 
-            // Verify payment with ZarinPal
-            $amountInRial = $subscription->paid_price * 10;
-            
-            $result = $this->zarinpal->verify(
-                $amountInRial,
-                $authority
-            );
+            // Determine driver (sandbox or production)
+            $driver = $this->sandbox ? 'zarinpal-sandbox' : 'zarinpal';
 
-            if ($result['Status'] == 100 || $result['Status'] == 101) {
-                // Payment verified successfully
-                $subscription->update([
-                    'ref_id' => $result['RefID'] ?? null,
-                ]);
+            // Verify payment - multipay automatically gets authority from request
+            $receipt = Payment::via($driver)
+                ->amount($subscription->paid_price * 10)
+                ->transactionId($authority)
+                ->verify();
 
-                // Activate subscription
-                $subscription->activate();
+            // Payment verified successfully
+            $subscription->update([
+                'ref_id' => $receipt->getReferenceId() ?? $receipt->getTraceNo() ?? null,
+            ]);
 
-                return [
-                    'success' => true,
-                    'message' => 'پرداخت با موفقیت انجام شد',
-                    'ref_id' => $result['RefID'] ?? null,
-                    'subscription' => $subscription->load('plan'),
-                ];
+            // Activate subscription
+            $subscription->activate();
+
+            return [
+                'success' => true,
+                'message' => 'پرداخت با موفقیت انجام شد',
+                'ref_id' => $receipt->getReferenceId() ?? $receipt->getTraceNo() ?? null,
+                'subscription' => $subscription->load('plan'),
+            ];
+
+        } catch (\Shetabit\Multipay\Exceptions\InvalidPaymentException $e) {
+            Log::error('ZarinPal Payment Verification Error: ' . $e->getMessage(), [
+                'authority' => $authority,
+            ]);
+
+            // Update subscription status to cancelled on error
+            if (isset($subscription)) {
+                $subscription->update(['status' => Subscription::STATUS_CANCELLED]);
             }
-
-            // Payment verification failed
-            $subscription->update(['status' => Subscription::STATUS_CANCELLED]);
 
             return [
                 'success' => false,
-                'message' => 'تایید پرداخت با خطا مواجه شد',
-                'error' => $result,
+                'message' => 'تایید پرداخت با خطا مواجه شد: ' . $e->getMessage(),
             ];
-
         } catch (\Exception $e) {
-            Log::error('ZarinPal Payment Verification Error: ' . $e->getMessage());
-            
+            Log::error('ZarinPal Payment Verification Error: ' . $e->getMessage(), [
+                'authority' => $authority,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            // Update subscription status to cancelled on error
+            if (isset($subscription)) {
+                $subscription->update(['status' => Subscription::STATUS_CANCELLED]);
+            }
+
             return [
                 'success' => false,
                 'message' => 'خطا در تایید پرداخت',
@@ -201,4 +200,3 @@ class ZarinpalService
         return $statuses[$status] ?? 'وضعیت نامشخص';
     }
 }
-

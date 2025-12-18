@@ -36,8 +36,6 @@ return [
     ],
 
     'zarinpal' => [
-        'merchant_id' => env('ZARINPAL_MERCHANT_ID', 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'),
-        'callback_url' => env('ZARINPAL_CALLBACK_URL', env('APP_URL') . '/payment/callback'),
         'sandbox' => env('ZARINPAL_SANDBOX', false),
     ],
 

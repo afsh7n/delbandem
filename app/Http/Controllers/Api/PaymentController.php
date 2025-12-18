@@ -94,11 +94,8 @@ class PaymentController extends Controller
         if ($result['success']) {
             return response()->json([
                 'success' => true,
-                'message' => 'لینک پرداخت با موفقیت ایجاد شد',
-                'data' => [
-                    'payment_url' => $result['payment_url'],
-                    'authority' => $result['authority'],
-                ],
+                'message' => $result['message'] ?? 'لینک پرداخت با موفقیت ایجاد شد',
+                'data' => $result['data'] ?? [],
             ]);
         }
 
