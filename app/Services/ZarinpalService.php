@@ -20,9 +20,9 @@ class ZarinpalService
         // Configuration with defaults
         $this->sandbox = env('ZARINPAL_SANDBOX', false);
         $this->merchantId = env('ZARINPAL_MERCHANT_ID', '2e3d6609-a5df-48df-99dc-3fdec26306fc');
-        $this->callbackUrl = env('ZARINPAL_CALLBACK_URL', env('APP_URL') . '/payment/callback');
+        $this->callbackUrl = env('ZARINPAL_CALLBACK_URL', 'https://dellbandam.ir/payment/callback');
         $currency = env('ZARINPAL_CURRENCY', 'IRT'); // IRT (Toman) or IRR (Rial)
-        
+
         // Set API URLs based on sandbox mode (using official ZarinPal API v4)
         if ($this->sandbox) {
             $this->apiRequestUrl = 'https://sandbox.zarinpal.com/pg/v4/payment/request.json';
@@ -51,7 +51,7 @@ class ZarinpalService
     public function requestPayment(Plan $plan, int $userId): array
     {
         $subscription = null;
-        
+
         try {
             // Create subscription record
             $subscription = Subscription::create([
@@ -121,7 +121,7 @@ class ZarinpalService
 
             // Parse response
             $responseData = json_decode($response, true);
-            
+
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new \Exception("JSON Parse Error: " . json_last_error_msg() . ". Response: " . substr($response, 0, 500));
             }
@@ -131,7 +131,7 @@ class ZarinpalService
                 $error = $responseData['errors'];
                 $errorCode = $error['code'] ?? -9;
                 $errorMessage = $error['message'] ?? 'خطای نامشخص';
-                
+
                 throw new \Exception("ZarinPal API Error (Code: {$errorCode}): {$errorMessage}");
             }
 
@@ -301,7 +301,7 @@ class ZarinpalService
 
             // Parse response
             $responseData = json_decode($response, true);
-            
+
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new \Exception("JSON Parse Error: " . json_last_error_msg() . ". Response: " . substr($response, 0, 500));
             }
@@ -311,7 +311,7 @@ class ZarinpalService
                 $error = $responseData['errors'];
                 $errorCode = $error['code'] ?? -9;
                 $errorMessage = $error['message'] ?? 'خطای نامشخص';
-                
+
                 throw new \Exception("ZarinPal API Error (Code: {$errorCode}): {$errorMessage}");
             }
 
