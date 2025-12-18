@@ -11,12 +11,15 @@ use Shetabit\Multipay\Invoice;
 
 class ZarinpalService
 {
-    private bool $sandbox;
+    private Payment $payment;
 
     public function __construct()
     {
-        $this->sandbox = config('payment.default') === 'zarinpal-sandbox' ||
-                        config('services.zarinpal.sandbox', false);
+        // Load payment config
+        $paymentConfig = config('payment');
+        
+        // Instantiate Payment class with config
+        $this->payment = new Payment($paymentConfig);
     }
 
     /**
@@ -48,16 +51,23 @@ class ZarinpalService
             // Determine driver from config (sandbox or production)
             $driver = config('payment.default', 'zarinpal');
 
-            // Purchase invoice
-            $payment = Payment::via($driver)->purchase($invoice, function ($driver, $transactionId) use ($subscription) {
-                // Save authority code
-                $subscription->update([
-                    'authority' => $transactionId
-                ]);
-            });
+            // Purchase invoice with callback URL
+            $callbackUrl = config("payment.drivers.{$driver}.callbackUrl");
+            
+            $this->payment->via($driver)
+                ->callbackUrl($callbackUrl)
+                ->purchase($invoice, function ($driver, $transactionId) use ($subscription) {
+                    // Save authority code
+                    $subscription->update([
+                        'authority' => $transactionId
+                    ]);
+                });
 
-            // Get payment URL
-            $paymentUrl = $payment->pay()->getAction();
+            // Get payment URL - construct from driver config and authority
+            // Refresh subscription to get the saved authority
+            $subscription->refresh();
+            $apiPaymentUrl = config("payment.drivers.{$driver}.apiPaymentUrl");
+            $paymentUrl = $apiPaymentUrl . $subscription->authority;
 
             return [
                 'success' => true,
@@ -116,8 +126,8 @@ class ZarinpalService
             // Determine driver from config (sandbox or production)
             $driver = config('payment.default', 'zarinpal');
 
-            // Verify payment - multipay automatically gets authority from request
-            $receipt = Payment::via($driver)
+            // Verify payment
+            $receipt = $this->payment->via($driver)
                 ->amount($subscription->paid_price * 10)
                 ->transactionId($authority)
                 ->verify();
