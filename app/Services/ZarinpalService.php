@@ -6,7 +6,7 @@ use App\Models\Plan;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Log;
 use Shetabit\Multipay\Exceptions\InvalidPaymentException;
-use Shetabit\Multipay\Facade\Payment;
+use Shetabit\Multipay\Payment;
 use Shetabit\Multipay\Invoice;
 
 class ZarinpalService
@@ -15,7 +15,7 @@ class ZarinpalService
 
     public function __construct()
     {
-        $this->sandbox = config('payment.default') === 'zarinpal-sandbox' || 
+        $this->sandbox = config('payment.default') === 'zarinpal-sandbox' ||
                         config('services.zarinpal.sandbox', false);
     }
 
@@ -105,7 +105,7 @@ class ZarinpalService
             // Check if payment was cancelled by user
             if ($status != 'OK') {
                 $subscription->update(['status' => Subscription::STATUS_CANCELLED]);
-                
+
                 return [
                     'success' => false,
                     'message' => 'پرداخت توسط کاربر لغو شد',
