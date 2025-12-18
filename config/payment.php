@@ -34,6 +34,7 @@ return [
             'description' => 'پرداخت از طریق زرین‌پال',
             'mode' => 'normal', // normal, zaringate
             'server' => 'iran', // iran, germany
+            'currency' => 'IRT', // IRT (Toman) or IRR (Rial)
         ],
 
         'zarinpal-sandbox' => [
@@ -45,6 +46,7 @@ return [
             'description' => 'پرداخت از طریق زرین‌پال (Sandbox)',
             'mode' => 'normal', // normal, zaringate
             'server' => 'iran', // iran, germany
+            'currency' => 'IRT', // IRT (Toman) or IRR (Rial)
         ],
     ],
 
