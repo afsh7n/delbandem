@@ -18,7 +18,7 @@ class ZarinpalService
     public function __construct()
     {
         // Configuration with defaults
-        $this->sandbox = env('ZARINPAL_SANDBOX', false);
+        $this->sandbox = env('ZARINPAL_SANDBOX', true);
         $this->merchantId = env('ZARINPAL_MERCHANT_ID', '2e3d6609-a5df-48df-99dc-3fdec26306fc');
         $this->callbackUrl = env('ZARINPAL_CALLBACK_URL', 'https://dellbandam.ir/payment/callback');
         $currency = env('ZARINPAL_CURRENCY', 'IRT'); // IRT (Toman) or IRR (Rial)
