@@ -11,15 +11,12 @@ use Shetabit\Payment\Facade\Payment;
 
 class ZarinpalService
 {
-    private string $merchantId;
-    private string $callbackUrl;
     private bool $sandbox;
 
     public function __construct()
     {
-        $this->merchantId = config('payment.drivers.zarinpal.merchant_id');
-        $this->callbackUrl = config('payment.drivers.zarinpal.callback_url');
-        $this->sandbox = config('services.zarinpal.sandbox', false);
+        $this->sandbox = config('payment.default') === 'zarinpal-sandbox' || 
+                        config('services.zarinpal.sandbox', false);
     }
 
     /**
@@ -48,8 +45,8 @@ class ZarinpalService
                     'user_id' => $userId,
                 ]);
 
-            // Determine driver (sandbox or production)
-            $driver = $this->sandbox ? 'zarinpal-sandbox' : 'zarinpal';
+            // Determine driver from config (sandbox or production)
+            $driver = config('payment.default', 'zarinpal');
 
             // Purchase invoice
             $payment = Payment::via($driver)->purchase($invoice, function ($driver, $transactionId) use ($subscription) {
@@ -116,8 +113,8 @@ class ZarinpalService
                 ];
             }
 
-            // Determine driver (sandbox or production)
-            $driver = $this->sandbox ? 'zarinpal-sandbox' : 'zarinpal';
+            // Determine driver from config (sandbox or production)
+            $driver = config('payment.default', 'zarinpal');
 
             // Verify payment - multipay automatically gets authority from request
             $receipt = Payment::via($driver)
