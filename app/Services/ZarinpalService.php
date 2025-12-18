@@ -183,12 +183,14 @@ class ZarinpalService
                 'Description' => $plan->description ?? "خرید پلن {$plan->name}",
             ];
 
-            // Try to get API response if available
+            // Try to get API response - test directly to see what API returns
             $apiResponseInfo = null;
+            $apiUrl = config("payment.drivers.{$currentDriver}.apiPurchaseUrl");
+            
             try {
                 $testData = [
                     'MerchantID' => $merchantId,
-                    'Amount' => $amountInRial,
+                    'Amount' => $amountInRial ?? 0,
                     'CallbackURL' => $callbackUrl,
                     'Description' => $plan->description ?? "خرید پلن {$plan->name}",
                 ];
@@ -203,21 +205,45 @@ class ZarinpalService
                 ]);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
                 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
                 
                 $apiResponse = curl_exec($ch);
                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                 $curlError = curl_error($ch);
+                $curlInfo = curl_getinfo($ch);
                 curl_close($ch);
 
+                $decodedResponse = null;
+                $jsonError = null;
+                if ($apiResponse) {
+                    $decodedResponse = json_decode($apiResponse, true);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        $jsonError = json_last_error_msg();
+                    }
+                }
+
                 $apiResponseInfo = [
+                    'api_url' => $apiUrl,
                     'http_code' => $httpCode,
                     'curl_error' => $curlError ?: null,
-                    'raw_response' => $apiResponse ? substr($apiResponse, 0, 1000) : null,
-                    'response_decoded' => $apiResponse ? json_decode($apiResponse, true) : null,
+                    'curl_info' => [
+                        'total_time' => $curlInfo['total_time'] ?? null,
+                        'connect_time' => $curlInfo['connect_time'] ?? null,
+                        'size_download' => $curlInfo['size_download'] ?? null,
+                    ],
+                    'raw_response' => $apiResponse ? substr($apiResponse, 0, 2000) : null,
+                    'raw_response_length' => $apiResponse ? strlen($apiResponse) : 0,
+                    'response_decoded' => $decodedResponse,
+                    'json_error' => $jsonError,
+                    'has_status_key' => isset($decodedResponse['Status']),
+                    'has_code_key' => isset($decodedResponse['code']),
+                    'status_value' => $decodedResponse['Status'] ?? $decodedResponse['code'] ?? null,
                 ];
             } catch (\Exception $apiTestEx) {
                 $apiResponseInfo = [
                     'test_error' => $apiTestEx->getMessage(),
+                    'test_error_trace' => $apiTestEx->getTraceAsString(),
                 ];
             }
 
