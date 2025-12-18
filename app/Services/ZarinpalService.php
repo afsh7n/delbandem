@@ -64,14 +64,20 @@ class ZarinpalService
                 ]);
 
             // Purchase invoice with callback URL
-            $this->payment->via($driver)
-                ->callbackUrl($callbackUrl)
-                ->purchase($invoice, function ($driver, $transactionId) use ($subscription) {
-                    // Save authority code
-                    $subscription->update([
-                        'authority' => $transactionId
-                    ]);
-                });
+            $apiUrl = config("payment.drivers.{$driver}.apiPurchaseUrl");
+            
+            try {
+                $this->payment->via($driver)
+                    ->callbackUrl($callbackUrl)
+                    ->purchase($invoice, function ($driver, $transactionId) use ($subscription) {
+                        // Save authority code
+                        $subscription->update([
+                            'authority' => $transactionId
+                        ]);
+                    });
+            } catch (\Shetabit\Multipay\Exceptions\InvalidPaymentException $e) {
+                throw new \Exception("خطا در درخواست پرداخت: " . $e->getMessage(), 0, $e);
+            }
 
             // Get payment URL - construct from driver config and authority
             // Refresh subscription to get the saved authority
@@ -98,32 +104,66 @@ class ZarinpalService
                     'message' => $e->getPrevious()->getMessage(),
                     'file' => $e->getPrevious()->getFile(),
                     'line' => $e->getPrevious()->getLine(),
+                    'trace' => $e->getPrevious()->getTraceAsString(),
                 ] : null,
             ];
 
-            Log::error('ZarinPal Payment Request Error: ' . $e->getMessage(), [
-                'error_details' => $errorDetails,
-                'plan_id' => $plan->id ?? null,
-                'user_id' => $userId,
-                'driver' => config('payment.default'),
-                'merchant_id_set' => !empty(config("payment.drivers." . config('payment.default') . ".merchantId")),
-            ]);
+            // Provide more helpful error message
+            $helpfulMessage = 'خطا در اتصال به درگاه پرداخت';
+            if (str_contains($e->getMessage(), 'code') || str_contains($e->getMessage(), 'Undefined array key')) {
+                $helpfulMessage = 'پاسخ نامعتبر از درگاه پرداخت. لطفاً Merchant ID و تنظیمات درگاه را بررسی کنید. احتمالاً Merchant ID معتبر نیست یا API زرین‌پال پاسخ درستی برنمی‌گرداند.';
+            } elseif (str_contains($e->getMessage(), 'null')) {
+                $helpfulMessage = 'پاسخ خالی از درگاه پرداخت. لطفاً اتصال اینترنت و تنظیمات درگاه را بررسی کنید.';
+            }
 
             // Update subscription status to cancelled on error
             if (isset($subscription)) {
                 $subscription->update(['status' => Subscription::STATUS_CANCELLED]);
             }
 
+            // Get all debug information for API response
+            $currentDriver = config('payment.default', 'zarinpal');
+            $driverConfig = config("payment.drivers.{$currentDriver}", []);
+
+            // Prepare request data that was sent
+            $requestData = [
+                'MerchantID' => $merchantId ? (substr($merchantId, 0, 10) . '...' . substr($merchantId, -4)) : null,
+                'Amount' => $amountInRial ?? null,
+                'CallbackURL' => $callbackUrl ?? null,
+                'Description' => $plan->description ?? "خرید پلن {$plan->name}",
+            ];
+
             return [
                 'success' => false,
-                'message' => 'خطا در اتصال به درگاه پرداخت',
+                'message' => $helpfulMessage,
                 'error' => $e->getMessage(),
                 'error_details' => $errorDetails,
-                'debug_info' => [
-                    'driver' => config('payment.default'),
-                    'merchant_id_configured' => !empty(config("payment.drivers." . config('payment.default') . ".merchantId")),
-                    'callback_url' => config("payment.drivers." . config('payment.default') . ".callbackUrl"),
+                'request_info' => [
+                    'plan_id' => $plan->id ?? null,
+                    'plan_name' => $plan->name ?? null,
+                    'plan_price' => $plan->price ?? null,
+                    'user_id' => $userId,
+                    'amount_in_rial' => $amountInRial ?? null,
+                    'amount_in_toman' => isset($amountInRial) ? ($amountInRial / 10) : null,
+                    'subscription_created' => isset($subscription),
+                    'subscription_id' => $subscription->id ?? null,
+                    'subscription_status' => $subscription->status ?? null,
                 ],
+                'payment_config' => [
+                    'driver' => $currentDriver,
+                    'merchant_id_configured' => !empty($driverConfig['merchantId'] ?? null),
+                    'merchant_id_length' => strlen($merchantId ?? ''),
+                    'merchant_id_preview' => $merchantId ? (substr($merchantId, 0, 10) . '...' . substr($merchantId, -4)) : null,
+                    'callback_url' => $driverConfig['callbackUrl'] ?? null,
+                    'api_purchase_url' => $driverConfig['apiPurchaseUrl'] ?? null,
+                    'api_payment_url' => $driverConfig['apiPaymentUrl'] ?? null,
+                    'api_verification_url' => $driverConfig['apiVerificationUrl'] ?? null,
+                    'mode' => $driverConfig['mode'] ?? null,
+                    'server' => $driverConfig['server'] ?? null,
+                    'currency' => $driverConfig['currency'] ?? null,
+                ],
+                'request_data' => $requestData,
+                'suggestion' => 'لطفاً Merchant ID را در پنل زرین‌پال بررسی کنید و مطمئن شوید که معتبر است. برای sandbox از Merchant ID مخصوص sandbox استفاده کنید. همچنین مطمئن شوید که API زرین‌پال در دسترس است.',
             ];
         }
     }
@@ -187,11 +227,6 @@ class ZarinpalService
                 'trace' => $e->getTraceAsString(),
             ];
 
-            Log::error('ZarinPal Payment Verification Error: ' . $e->getMessage(), [
-                'authority' => $authority,
-                'error_details' => $errorDetails,
-            ]);
-
             // Update subscription status to cancelled on error
             if (isset($subscription)) {
                 $subscription->update(['status' => Subscription::STATUS_CANCELLED]);
@@ -210,11 +245,6 @@ class ZarinpalService
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ];
-
-            Log::error('ZarinPal Payment Verification Error: ' . $e->getMessage(), [
-                'authority' => $authority,
-                'error_details' => $errorDetails,
-            ]);
 
             // Update subscription status to cancelled on error
             if (isset($subscription)) {
