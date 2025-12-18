@@ -32,6 +32,8 @@ return [
             'merchantId' => env('ZARINPAL_MERCHANT_ID'),
             'callbackUrl' => env('ZARINPAL_CALLBACK_URL', env('APP_URL') . '/payment/callback'),
             'description' => 'پرداخت از طریق زرین‌پال',
+            'mode' => 'normal', // normal, zaringate
+            'server' => 'iran', // iran, germany
         ],
 
         'zarinpal-sandbox' => [
@@ -41,6 +43,8 @@ return [
             'merchantId' => env('ZARINPAL_MERCHANT_ID'),
             'callbackUrl' => env('ZARINPAL_CALLBACK_URL', env('APP_URL') . '/payment/callback'),
             'description' => 'پرداخت از طریق زرین‌پال (Sandbox)',
+            'mode' => 'normal', // normal, zaringate
+            'server' => 'iran', // iran, germany
         ],
     ],
 
