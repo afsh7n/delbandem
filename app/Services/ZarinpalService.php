@@ -6,8 +6,8 @@ use App\Models\Plan;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Log;
 use Shetabit\Multipay\Exceptions\InvalidPaymentException;
+use Shetabit\Multipay\Facade\Payment;
 use Shetabit\Multipay\Invoice;
-use Shetabit\Payment\Facade\Payment;
 
 class ZarinpalService
 {
