@@ -28,6 +28,21 @@ class ZarinpalService
     public function requestPayment(Plan $plan, int $userId): array
     {
         try {
+            // Determine driver from config (sandbox or production)
+            $driver = config('payment.default', 'zarinpal');
+
+            // Validate configuration
+            $merchantId = config("payment.drivers.{$driver}.merchantId");
+            $callbackUrl = config("payment.drivers.{$driver}.callbackUrl");
+
+            if (empty($merchantId)) {
+                throw new \Exception("Merchant ID is not configured for driver: {$driver}. Please set ZARINPAL_MERCHANT_ID in your .env file.");
+            }
+
+            if (empty($callbackUrl)) {
+                throw new \Exception("Callback URL is not configured for driver: {$driver}.");
+            }
+
             // Create subscription record
             $subscription = Subscription::create([
                 'user_id' => $userId,
@@ -48,12 +63,7 @@ class ZarinpalService
                     'user_id' => $userId,
                 ]);
 
-            // Determine driver from config (sandbox or production)
-            $driver = config('payment.default', 'zarinpal');
-
             // Purchase invoice with callback URL
-            $callbackUrl = config("payment.drivers.{$driver}.callbackUrl");
-            
             $this->payment->via($driver)
                 ->callbackUrl($callbackUrl)
                 ->purchase($invoice, function ($driver, $transactionId) use ($subscription) {
@@ -79,8 +89,24 @@ class ZarinpalService
             ];
 
         } catch (\Exception $e) {
-            Log::error('ZarinPal Payment Request Error: ' . $e->getMessage(), [
+            $errorDetails = [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
+                'previous' => $e->getPrevious() ? [
+                    'message' => $e->getPrevious()->getMessage(),
+                    'file' => $e->getPrevious()->getFile(),
+                    'line' => $e->getPrevious()->getLine(),
+                ] : null,
+            ];
+
+            Log::error('ZarinPal Payment Request Error: ' . $e->getMessage(), [
+                'error_details' => $errorDetails,
+                'plan_id' => $plan->id ?? null,
+                'user_id' => $userId,
+                'driver' => config('payment.default'),
+                'merchant_id_set' => !empty(config("payment.drivers." . config('payment.default') . ".merchantId")),
             ]);
 
             // Update subscription status to cancelled on error
@@ -92,6 +118,12 @@ class ZarinpalService
                 'success' => false,
                 'message' => 'خطا در اتصال به درگاه پرداخت',
                 'error' => $e->getMessage(),
+                'error_details' => $errorDetails,
+                'debug_info' => [
+                    'driver' => config('payment.default'),
+                    'merchant_id_configured' => !empty(config("payment.drivers." . config('payment.default') . ".merchantId")),
+                    'callback_url' => config("payment.drivers." . config('payment.default') . ".callbackUrl"),
+                ],
             ];
         }
     }
@@ -148,8 +180,16 @@ class ZarinpalService
             ];
 
         } catch (\Shetabit\Multipay\Exceptions\InvalidPaymentException $e) {
+            $errorDetails = [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ];
+
             Log::error('ZarinPal Payment Verification Error: ' . $e->getMessage(), [
                 'authority' => $authority,
+                'error_details' => $errorDetails,
             ]);
 
             // Update subscription status to cancelled on error
@@ -160,11 +200,20 @@ class ZarinpalService
             return [
                 'success' => false,
                 'message' => 'تایید پرداخت با خطا مواجه شد: ' . $e->getMessage(),
+                'error' => $e->getMessage(),
+                'error_details' => $errorDetails,
             ];
         } catch (\Exception $e) {
+            $errorDetails = [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ];
+
             Log::error('ZarinPal Payment Verification Error: ' . $e->getMessage(), [
                 'authority' => $authority,
-                'trace' => $e->getTraceAsString(),
+                'error_details' => $errorDetails,
             ]);
 
             // Update subscription status to cancelled on error
@@ -176,6 +225,7 @@ class ZarinpalService
                 'success' => false,
                 'message' => 'خطا در تایید پرداخت',
                 'error' => $e->getMessage(),
+                'error_details' => $errorDetails,
             ];
         }
     }
