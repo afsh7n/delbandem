@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Morilog\Jalali\Jalalian;
 
 class User extends Authenticatable
 {
@@ -97,11 +98,27 @@ class User extends Authenticatable
             return null;
         }
 
+        // Convert dates to Jalali (Persian) format
+        $startDateJalali = null;
+        $endDateJalali = null;
+        
+        if ($subscription->start_date) {
+            $startDateJalali = Jalalian::fromDateTime($subscription->start_date)
+                ->format('Y/m/d H:i');
+        }
+        
+        if ($subscription->end_date) {
+            $endDateJalali = Jalalian::fromDateTime($subscription->end_date)
+                ->format('Y/m/d H:i');
+        }
+
         return [
             'has_subscription' => true,
             'plan_name' => $subscription->plan->name,
             'start_date' => $subscription->start_date?->toIso8601String(),
+            'start_date_jalali' => $startDateJalali,
             'end_date' => $subscription->end_date?->toIso8601String(),
+            'end_date_jalali' => $endDateJalali,
             'days_remaining' => $subscription->end_date ? max(0, now()->diffInDays($subscription->end_date, false)) : 0,
         ];
     }
