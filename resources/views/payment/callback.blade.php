@@ -199,30 +199,50 @@
         @endif
 
         <div class="buttons">
-            <a href="#" 
-               class="btn btn-primary"
-               id="appLink"
-               onclick="openApp(); return false;">
+            <button id="openAppButton" class="btn btn-primary">
                 بازگشت به اپلیکیشن
-            </a>
+            </button>
         </div>
     </div>
 
     <script>
-        // Deep link for Android app - Direct custom scheme (no app store redirect)
+        // Android Intent URI - باز کردن مستقیم اپ بدون رفتن به اپ استور
         const appPackage = 'com.delbandam.app';
         const status = '{{ $success ? 'success' : 'failed' }}';
-        
-        // Function to open Android app directly using custom scheme
+        let appOpened = false;
+
         function openApp() {
-            // Use custom URL scheme - this will directly open the app if installed
-            // Format: com.delbandam.app://payment/success or com.delbandam.app://payment/failed
-            const deepLink = `${appPackage}://payment/${status}`;
-            
-            // Direct redirect to app
-            window.location.href = deepLink;
+            // Intent URI برای باز کردن اپ با package name
+            const intentUri = "intent:#Intent;" +
+                "action=android.intent.action.MAIN;" +
+                "category=android.intent.category.LAUNCHER;" +
+                "launchFlags=0x10000000;" +
+                "package=" + appPackage + ";" +
+                "end";
+
+            // تلاش برای باز کردن اپ
+            window.location.href = intentUri;
+
+            // اگر بعد از 1-2 ثانیه صفحه عوض نشد، یعنی اپ نصب نیست
+            const timeout = setTimeout(function() {
+                if (!appOpened) {
+                    // اگر اپ باز نشد، می‌تونیم پیام بدیم (اختیاری)
+                    console.log('اپلیکیشن "دل‌بندم" روی دستگاه شما نصب نیست یا نمی‌توان آن را باز کرد.');
+                }
+            }, 1500);
+
+            // اگر صفحه مخفی شد (یعنی اپ باز شد)، تایمر رو کنسل کن
+            window.addEventListener('pagehide', function() {
+                appOpened = true;
+                clearTimeout(timeout);
+            });
         }
-        
+
+        // اضافه کردن event listener به دکمه
+        document.getElementById('openAppButton').addEventListener('click', function() {
+            openApp();
+        });
+
         // Auto redirect to app after 2 seconds
         setTimeout(openApp, 2000);
     </script>
