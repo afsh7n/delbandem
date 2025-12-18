@@ -66,6 +66,56 @@ class ZarinpalService
             // Purchase invoice with callback URL
             $apiUrl = config("payment.drivers.{$driver}.apiPurchaseUrl");
             
+            // Test API connection first by making a direct request
+            $testResponse = null;
+            $testError = null;
+            try {
+                $testData = [
+                    'MerchantID' => $merchantId,
+                    'Amount' => $amountInRial,
+                    'CallbackURL' => $callbackUrl,
+                    'Description' => $plan->description ?? "خرید پلن {$plan->name}",
+                ];
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $apiUrl);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($testData));
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'Content-Type: application/json',
+                    'Accept: application/json',
+                ]);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+                
+                $testResponse = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $curlError = curl_error($ch);
+                curl_close($ch);
+
+                if ($curlError) {
+                    $testError = "CURL Error: " . $curlError;
+                } elseif ($httpCode !== 200) {
+                    $testError = "HTTP Error: Status code {$httpCode}";
+                } elseif ($testResponse) {
+                    $decodedResponse = json_decode($testResponse, true);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        $testError = "JSON Parse Error: " . json_last_error_msg();
+                    } elseif (!isset($decodedResponse['Status']) && !isset($decodedResponse['code'])) {
+                        $testError = "Invalid API Response: Missing Status/code field. Response: " . substr($testResponse, 0, 500);
+                    }
+                } else {
+                    $testError = "Empty response from API";
+                }
+            } catch (\Exception $testEx) {
+                $testError = "Test request exception: " . $testEx->getMessage();
+            }
+
+            // If test failed, include it in the error
+            if ($testError) {
+                throw new \Exception("خطا در اتصال به API زرین‌پال: {$testError}. Response: " . ($testResponse ? substr($testResponse, 0, 500) : 'null'));
+            }
+            
             try {
                 $this->payment->via($driver)
                     ->callbackUrl($callbackUrl)
@@ -133,6 +183,44 @@ class ZarinpalService
                 'Description' => $plan->description ?? "خرید پلن {$plan->name}",
             ];
 
+            // Try to get API response if available
+            $apiResponseInfo = null;
+            try {
+                $testData = [
+                    'MerchantID' => $merchantId,
+                    'Amount' => $amountInRial,
+                    'CallbackURL' => $callbackUrl,
+                    'Description' => $plan->description ?? "خرید پلن {$plan->name}",
+                ];
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $apiUrl);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($testData));
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'Content-Type: application/json',
+                    'Accept: application/json',
+                ]);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+                
+                $apiResponse = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $curlError = curl_error($ch);
+                curl_close($ch);
+
+                $apiResponseInfo = [
+                    'http_code' => $httpCode,
+                    'curl_error' => $curlError ?: null,
+                    'raw_response' => $apiResponse ? substr($apiResponse, 0, 1000) : null,
+                    'response_decoded' => $apiResponse ? json_decode($apiResponse, true) : null,
+                ];
+            } catch (\Exception $apiTestEx) {
+                $apiResponseInfo = [
+                    'test_error' => $apiTestEx->getMessage(),
+                ];
+            }
+
             return [
                 'success' => false,
                 'message' => $helpfulMessage,
@@ -163,7 +251,8 @@ class ZarinpalService
                     'currency' => $driverConfig['currency'] ?? null,
                 ],
                 'request_data' => $requestData,
-                'suggestion' => 'لطفاً Merchant ID را در پنل زرین‌پال بررسی کنید و مطمئن شوید که معتبر است. برای sandbox از Merchant ID مخصوص sandbox استفاده کنید. همچنین مطمئن شوید که API زرین‌پال در دسترس است.',
+                'api_response_test' => $apiResponseInfo ?? null,
+                'suggestion' => 'لطفاً Merchant ID را در پنل زرین‌پال بررسی کنید و مطمئن شوید که معتبر است. برای sandbox از Merchant ID مخصوص sandbox استفاده کنید. همچنین مطمئن شوید که API زرین‌پال در دسترس است. اگر api_response_test موجود است، آن را بررسی کنید تا ببینید API چه پاسخی برمی‌گرداند.',
             ];
         }
     }
