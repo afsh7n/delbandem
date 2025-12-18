@@ -99,23 +99,38 @@ class PaymentController extends Controller
             ]);
         }
 
-        // Return full error details
+        // Return full error details - include all fields from service
         $response = [
             'success' => false,
             'message' => $result['message'] ?? 'خطا در اتصال به درگاه پرداخت',
         ];
 
-        // Add error details if available
+        // Add all available fields from service response
         if (isset($result['error'])) {
             $response['error'] = $result['error'];
         }
 
-        // Add error details if available
         if (isset($result['error_details'])) {
             $response['error_details'] = $result['error_details'];
         }
 
-        // Add debug info if available
+        if (isset($result['request_info'])) {
+            $response['request_info'] = $result['request_info'];
+        }
+
+        if (isset($result['payment_config'])) {
+            $response['payment_config'] = $result['payment_config'];
+        }
+
+        if (isset($result['request_data'])) {
+            $response['request_data'] = $result['request_data'];
+        }
+
+        if (isset($result['suggestion'])) {
+            $response['suggestion'] = $result['suggestion'];
+        }
+
+        // Also include debug_info for backward compatibility
         if (isset($result['debug_info'])) {
             $response['debug_info'] = $result['debug_info'];
         }
