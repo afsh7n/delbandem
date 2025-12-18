@@ -290,12 +290,32 @@ class ZarinpalService
             $curlError = curl_error($ch);
             curl_close($ch);
 
+            // Log verify request and response for debugging
+            Log::info('ZarinPal Verify Request', [
+                'authority' => $authority,
+                'amount' => $amount,
+                'currency' => $currency,
+                'merchant_id' => substr($this->merchantId, 0, 10) . '...',
+                'request_data' => $requestData,
+            ]);
+
+            Log::info('ZarinPal Verify Response', [
+                'http_code' => $httpCode,
+                'curl_error' => $curlError,
+                'response_raw' => $response,
+            ]);
+
             // Handle CURL errors
             if ($curlError) {
+                Log::error('ZarinPal Verify CURL Error', ['error' => $curlError]);
                 throw new \Exception("CURL Error: {$curlError}");
             }
 
             if ($httpCode !== 200) {
+                Log::error('ZarinPal Verify HTTP Error', [
+                    'http_code' => $httpCode,
+                    'response' => substr($response, 0, 500),
+                ]);
                 throw new \Exception("HTTP Error: Status code {$httpCode}. Response: " . substr($response, 0, 500));
             }
 
@@ -303,8 +323,14 @@ class ZarinpalService
             $responseData = json_decode($response, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
+                Log::error('ZarinPal Verify JSON Parse Error', [
+                    'json_error' => json_last_error_msg(),
+                    'response' => substr($response, 0, 500),
+                ]);
                 throw new \Exception("JSON Parse Error: " . json_last_error_msg() . ". Response: " . substr($response, 0, 500));
             }
+
+            Log::info('ZarinPal Verify Parsed Response', ['response_data' => $responseData]);
 
             // Check for errors in response
             if (isset($responseData['errors']) && !empty($responseData['errors'])) {
@@ -312,11 +338,21 @@ class ZarinpalService
                 $errorCode = $error['code'] ?? -9;
                 $errorMessage = $error['message'] ?? 'خطای نامشخص';
 
+                Log::error('ZarinPal Verify API Error', [
+                    'error_code' => $errorCode,
+                    'error_message' => $errorMessage,
+                    'errors' => $error,
+                ]);
+
                 throw new \Exception("ZarinPal API Error (Code: {$errorCode}): {$errorMessage}");
             }
 
             // Check for data
             if (!isset($responseData['data'])) {
+                Log::error('ZarinPal Verify Missing Data', [
+                    'response_data' => $responseData,
+                    'response_raw' => substr($response, 0, 500),
+                ]);
                 throw new \Exception("Invalid API Response: Missing 'data' field. Response: " . substr($response, 0, 500));
             }
 
@@ -324,9 +360,21 @@ class ZarinpalService
             $code = $data['code'] ?? null;
             $refId = $data['ref_id'] ?? null;
 
+            Log::info('ZarinPal Verify Data', [
+                'code' => $code,
+                'ref_id' => $refId,
+                'data' => $data,
+            ]);
+
             // Check response code
+            // Note: In sandbox mode, code 100 means success, code 101 means already verified
             if ($code !== 100 && $code !== 101) {
                 $errorMessage = self::getErrorMessage($code);
+                Log::error('ZarinPal Verify Failed', [
+                    'code' => $code,
+                    'error_message' => $errorMessage,
+                    'data' => $data,
+                ]);
                 throw new \Exception("ZarinPal Payment Verification Failed (Code: {$code}): {$errorMessage}");
             }
 

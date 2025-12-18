@@ -199,20 +199,47 @@
         @endif
 
         <div class="buttons">
-            <a href="myapp://payment/{{ $success ? 'success' : 'failed' }}" class="btn btn-primary">
+            <a href="#" 
+               class="btn btn-primary"
+               id="appLink"
+               onclick="openApp(); return false;">
                 بازگشت به اپلیکیشن
-            </a>
-            <a href="{{ url('/') }}" class="btn btn-secondary">
-                صفحه اصلی
             </a>
         </div>
     </div>
 
     <script>
-        // Auto redirect to app after 3 seconds
-        setTimeout(() => {
-            window.location.href = 'myapp://payment/{{ $success ? 'success' : 'failed' }}';
-        }, 3000);
+        // Deep link for Android app
+        const appPackage = 'com.delbandam.app';
+        const status = '{{ $success ? 'success' : 'failed' }}';
+        
+        // Function to open Android app
+        function openApp() {
+            // Try Android Intent URL first (most reliable)
+            const intentUrl = `intent://payment/${status}#Intent;scheme=${appPackage};package=${appPackage};end`;
+            
+            // Try custom scheme
+            const customScheme = `${appPackage}://payment/${status}`;
+            
+            // Try Android App Link
+            const appLink = `https://${appPackage}/payment/${status}`;
+            
+            // Try intent first
+            window.location.href = intentUrl;
+            
+            // Fallback: if intent doesn't work, try custom scheme after a delay
+            setTimeout(() => {
+                window.location.href = customScheme;
+            }, 500);
+            
+            // Final fallback: try app link
+            setTimeout(() => {
+                window.location.href = appLink;
+            }, 1000);
+        }
+        
+        // Auto redirect to app after 2 seconds
+        setTimeout(openApp, 2000);
     </script>
 </body>
 </html>
