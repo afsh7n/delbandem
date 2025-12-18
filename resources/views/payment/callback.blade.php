@@ -209,33 +209,18 @@
     </div>
 
     <script>
-        // Deep link for Android app
+        // Deep link for Android app - Direct custom scheme (no app store redirect)
         const appPackage = 'com.delbandam.app';
         const status = '{{ $success ? 'success' : 'failed' }}';
         
-        // Function to open Android app
+        // Function to open Android app directly using custom scheme
         function openApp() {
-            // Try Android Intent URL first (most reliable)
-            const intentUrl = `intent://payment/${status}#Intent;scheme=${appPackage};package=${appPackage};end`;
+            // Use custom URL scheme - this will directly open the app if installed
+            // Format: com.delbandam.app://payment/success or com.delbandam.app://payment/failed
+            const deepLink = `${appPackage}://payment/${status}`;
             
-            // Try custom scheme
-            const customScheme = `${appPackage}://payment/${status}`;
-            
-            // Try Android App Link
-            const appLink = `https://${appPackage}/payment/${status}`;
-            
-            // Try intent first
-            window.location.href = intentUrl;
-            
-            // Fallback: if intent doesn't work, try custom scheme after a delay
-            setTimeout(() => {
-                window.location.href = customScheme;
-            }, 500);
-            
-            // Final fallback: try app link
-            setTimeout(() => {
-                window.location.href = appLink;
-            }, 1000);
+            // Direct redirect to app
+            window.location.href = deepLink;
         }
         
         // Auto redirect to app after 2 seconds
