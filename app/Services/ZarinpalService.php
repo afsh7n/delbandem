@@ -2,14 +2,14 @@
 
 namespace App\Services;
 
-use Zarinpal\Zarinpal;
+use Zarinpal\Zarinpal as ZarinpalClient;
 use App\Models\Plan;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Log;
 
 class ZarinpalService
 {
-    private Zarinpal $zarinpal;
+    private ?ZarinpalClient $zarinpal = null;
     private string $merchantId;
     private string $callbackUrl;
     private bool $sandbox;
@@ -20,7 +20,9 @@ class ZarinpalService
         $this->callbackUrl = config('services.zarinpal.callback_url');
         $this->sandbox = config('services.zarinpal.sandbox', false);
 
-        $this->zarinpal = new Zarinpal($this->merchantId, $this->sandbox);
+        if (class_exists(ZarinpalClient::class)) {
+            $this->zarinpal = new ZarinpalClient($this->merchantId, $this->sandbox);
+        }
     }
 
     /**
@@ -29,6 +31,13 @@ class ZarinpalService
     public function requestPayment(Plan $plan, int $userId): array
     {
         try {
+            if (!$this->zarinpal) {
+                return [
+                    'success' => false,
+                    'message' => 'پکیج زرین‌پال نصب نشده است. لطفا composer install را اجرا کنید.',
+                ];
+            }
+
             // Create subscription record
             $subscription = Subscription::create([
                 'user_id' => $userId,
@@ -92,6 +101,13 @@ class ZarinpalService
     public function verifyPayment(string $authority, int $status): array
     {
         try {
+            if (!$this->zarinpal) {
+                return [
+                    'success' => false,
+                    'message' => 'پکیج زرین‌پال نصب نشده است. لطفا composer install را اجرا کنید.',
+                ];
+            }
+
             // Find subscription by authority
             $subscription = Subscription::where('authority', $authority)->first();
 
