@@ -99,10 +99,28 @@ class PaymentController extends Controller
             ]);
         }
 
-        return response()->json([
+        // Return full error details
+        $response = [
             'success' => false,
-            'message' => $result['message'],
-        ], 500);
+            'message' => $result['message'] ?? 'خطا در اتصال به درگاه پرداخت',
+        ];
+
+        // Add error details if available
+        if (isset($result['error'])) {
+            $response['error'] = $result['error'];
+        }
+
+        // Add error details if available
+        if (isset($result['error_details'])) {
+            $response['error_details'] = $result['error_details'];
+        }
+
+        // Add debug info if available
+        if (isset($result['debug_info'])) {
+            $response['debug_info'] = $result['debug_info'];
+        }
+
+        return response()->json($response, 500);
     }
 
     /**
