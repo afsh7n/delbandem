@@ -12,7 +12,7 @@ return [
     |
     */
 
-    'default' => env('PAYMENT_DRIVER', 'zarinpal'),
+    'default' => env('PAYMENT_DRIVER', 'zarinpal-sandbox'),
 
     /*
     |--------------------------------------------------------------------------
