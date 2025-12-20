@@ -125,8 +125,9 @@ class StoryController extends Controller
     /**
      * Open a story (record that user opened it)
      * 
-     * Records that a user opened a story. If user has a plan and viewed stories count
-     * is less than count_free_story setting, saves the record and returns 200.
+     * Records that a user opened a story. If user has already opened this story before,
+     * no limit checks are performed. Otherwise, checks if user has a plan or viewed stories
+     * count is less than count_free_story setting.
      * 
      * @param string $id Story ID
      * @return JsonResponse
@@ -136,6 +137,27 @@ class StoryController extends Controller
         $user = Auth::user();
         $story = Story::findOrFail($id);
 
+        // Check if user has already opened this story before
+        $listenRecord = UserStoryListen::where('user_id', $user->id)
+            ->where('story_id', $story->id)
+            ->first();
+
+        // If already opened, allow access without limit checks
+        if ($listenRecord) {
+            // Update last_listened_at to current time
+            $listenRecord->update([
+                'last_listened_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'استوری با موفقیت باز شد',
+                'can_view' => true,
+                'listen_record' => $listenRecord->fresh(),
+            ], 200);
+        }
+
+        // If not opened before, check limits
         // Check if user has active subscription
         $hasActiveSubscription = $user->hasActiveSubscription();
         
@@ -156,25 +178,13 @@ class StoryController extends Controller
             ], 403);
         }
 
-        // Check if already opened
-        $listenRecord = UserStoryListen::where('user_id', $user->id)
-            ->where('story_id', $story->id)
-            ->first();
-
-        if ($listenRecord) {
-            // Update opened_at if not set
-            if (!$listenRecord->opened_at) {
-                $listenRecord->update(['opened_at' => now()]);
-            }
-        } else {
-            // Create new record
-            $listenRecord = UserStoryListen::create([
-                'user_id' => $user->id,
-                'story_id' => $story->id,
-                'opened_at' => now(),
-                'last_listened_at' => now(),
-            ]);
-        }
+        // Create new record for first time opening
+        $listenRecord = UserStoryListen::create([
+            'user_id' => $user->id,
+            'story_id' => $story->id,
+            'opened_at' => now(),
+            'last_listened_at' => now(),
+        ]);
 
         return response()->json([
             'success' => true,
