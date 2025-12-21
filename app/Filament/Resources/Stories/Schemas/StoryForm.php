@@ -7,6 +7,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
 class StoryForm
@@ -62,6 +63,11 @@ class StoryForm
                     ->numeric()
                     ->default(1)
                     ->helperText('تعداد کل امتیازهای ثبت شده'),
+                Toggle::make('is_free')
+                    ->label('استوری رایگان')
+                    ->default(false)
+                    ->helperText('اگر فعال باشد، این استوری برای همه کاربران رایگان خواهد بود')
+                    ->inline(false),
             ]);
     }
 }
