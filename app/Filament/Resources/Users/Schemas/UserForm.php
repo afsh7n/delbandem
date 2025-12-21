@@ -14,6 +14,11 @@ class UserForm
     {
         return $schema
             ->components([
+                TextInput::make('name')
+                    ->label('نام')
+                    ->maxLength(255)
+                    ->placeholder('نام کاربر')
+                    ->visible(fn ($get) => $get('role') === 'admin'),
                 TextInput::make('email')
                     ->label('ایمیل')
                     ->email()

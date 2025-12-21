@@ -18,6 +18,7 @@ class Story extends Model
         'total_rates',
         'category_id',
         'rate',
+        'is_free',
     ];
 
     protected $appends = [
@@ -30,6 +31,7 @@ class Story extends Model
         return [
             'total_rates' => 'integer',
             'rate' => 'float',
+            'is_free' => 'boolean',
         ];
     }
 

@@ -157,7 +157,25 @@ class StoryController extends Controller
             ], 200);
         }
 
-        // If not opened before, check limits
+        // If story is free, allow access without limit checks
+        if ($story->is_free) {
+            // Create new record for first time opening
+            $listenRecord = UserStoryListen::create([
+                'user_id' => $user->id,
+                'story_id' => $story->id,
+                'opened_at' => now(),
+                'last_listened_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'استوری با موفقیت باز شد',
+                'can_view' => true,
+                'listen_record' => $listenRecord,
+            ], 200);
+        }
+
+        // If not opened before and story is not free, check limits
         // Check if user has active subscription
         $hasActiveSubscription = $user->hasActiveSubscription();
         

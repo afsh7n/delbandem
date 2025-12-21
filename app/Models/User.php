@@ -55,6 +55,42 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Get the user's name attribute.
+     * If name is null, return phone_number as fallback.
+     */
+    public function getNameAttribute($value): string
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+        
+        // Fallback to phone_number if name is null
+        $phoneNumber = $this->attributes['phone_number'] ?? null;
+        if ($phoneNumber) {
+            return $phoneNumber;
+        }
+        
+        // Final fallback
+        return 'کاربر';
+    }
+
+    /**
+     * Get user name for Filament (ensures string is always returned)
+     */
+    public function getUserName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * Check if user is admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
     public function favoriteStories()
     {
         return $this->belongsToMany(Story::class, 'user_favorites', 'user_id', 'story_id');
