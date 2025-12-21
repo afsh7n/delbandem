@@ -27,20 +27,40 @@ class UserForm
                 TextInput::make('google_id')
                     ->label('شناسه گوگل')
                     ->placeholder('Google ID'),
-                FileUpload::make('photo')
-                    ->label('تصویر پروفایل')
-                    ->image()
-                    ->disk('public')
-                    ->directory('users')
-                    ->visibility('public')
-                    ->default('default-user.jpg'),
                 Select::make('role')
                     ->label('نقش')
                     ->options([
                         'user' => 'کاربر',
                         'admin' => 'مدیر',
                     ])
-                    ->default('user'),
+                    ->default('user')
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, $set, $get) {
+                        // اگر نقش به admin تغییر کرد و photo خالی است، مقدار پیش‌فرض را تنظیم کن
+                        if ($state === 'admin' && empty($get('photo'))) {
+                            $set('photo', 'default-user.jpg');
+                        }
+                    }),
+                FileUpload::make('photo')
+                    ->label('تصویر پروفایل')
+                    ->image()
+                    ->disk('public')
+                    ->directory('users')
+                    ->visibility('public')
+                    ->default('default-user.jpg')
+                    ->visible(fn ($get) => $get('role') === 'user')
+                    ->dehydrated(true),
+                TextInput::make('password')
+                    ->label('رمز عبور')
+                    ->password()
+                    ->required(fn ($get, $livewire) => $get('role') === 'admin' && $livewire instanceof \App\Filament\Resources\Users\Pages\CreateUser)
+                    ->visible(fn ($get) => $get('role') === 'admin')
+                    ->dehydrated(fn ($get, $state) => !empty($state))
+                    ->helperText(fn ($livewire) => $livewire instanceof \App\Filament\Resources\Users\Pages\EditUser 
+                        ? 'فقط در صورت تغییر رمز عبور، فیلد را پر کنید.' 
+                        : 'رمز عبور برای نقش مدیر الزامی است.')
+                    ->minLength(8)
+                    ->autocomplete('new-password'),
                 Toggle::make('active')
                     ->label('فعال')
                     ->default(true),

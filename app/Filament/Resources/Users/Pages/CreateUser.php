@@ -18,4 +18,14 @@ class CreateUser extends CreateRecord
     {
         return $this->getResource()::getUrl('index');
     }
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        // اگر نقش admin است و photo خالی است، مقدار پیش‌فرض را تنظیم کن
+        if (isset($data['role']) && $data['role'] === 'admin' && empty($data['photo'])) {
+            $data['photo'] = 'default-user.jpg';
+        }
+
+        return $data;
+    }
 }
